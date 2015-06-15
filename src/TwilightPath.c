@@ -31,7 +31,6 @@ TwilightPath * twilight_path_create(float zenithAngle, ScreenPartToEnclose toEnc
    }
 
    pMyRet->fZenith = zenithAngle;
-   pMyRet->toEnclose = toEnclose;
 
    if (greyBitmapResourceId != INVALID_RESOURCE)
    {
@@ -51,19 +50,22 @@ TwilightPath * twilight_path_create(float zenithAngle, ScreenPartToEnclose toEnc
    //  (they depend only on ScreenPartToEnclose).  But the point order varies
    //  depending on toEnclose (see aPathPoints declaration comment in header).
    pMyRet->aPathPoints[0] = GPoint(0, 9);    // always "center" hub
-   if (toEnclose == ENCLOSE_SCREEN_TOP)
-   {
-      // pMyRet->aPathPoints[1] = dawn zenith angle "time"
-      pMyRet->aPathPoints[2] = GPoint(X_LEFT, Y_TOP);
-      pMyRet->aPathPoints[3] = GPoint(X_RIGHT, Y_TOP);
-      // pMyRet->aPathPoints[4] = dusk zenith angle "time"
-   }
-   else
+#ifdef PBL_PLATFORM_APLITE
+   pMyRet->toEnclose = toEnclose;
+   if (toEnclose != ENCLOSE_SCREEN_TOP)
    {
       // pMyRet->aPathPoints[1] = dusk zenith angle "time"
       pMyRet->aPathPoints[2] = GPoint(X_RIGHT, Y_BOTTOM);
       pMyRet->aPathPoints[3] = GPoint(X_LEFT, Y_BOTTOM);
       // pMyRet->aPathPoints[4] = dawn zenith angle "time"
+   }
+   else
+#endif
+   {
+      // pMyRet->aPathPoints[1] = dawn zenith angle "time"
+      pMyRet->aPathPoints[2] = GPoint(X_LEFT, Y_TOP);
+      pMyRet->aPathPoints[3] = GPoint(X_RIGHT, Y_TOP);
+      // pMyRet->aPathPoints[4] = dusk zenith angle "time"
    }
 
    //  path descriptor, which is constant for life of this TwilightPath instance.
@@ -170,18 +172,20 @@ const float timeFudge = 12.0f;
                              9 - (int16_t)(my_cos(fDuskTime / 24 * M_PI * 2) * 120));
 
    //  do the point init which twilight_path_create() couldn't.
-   if (pTwilightPath->toEnclose == ENCLOSE_SCREEN_TOP)
-   {
-      pTwilightPath->aPathPoints[1] = dawnPoint;
-      pTwilightPath->aPathPoints[4] = duskPoint;
-   }
-   else
+#ifdef PBL_PLATFORM_APLITE    // basalt always encloses screen top
+   if (pTwilightPath->toEnclose != ENCLOSE_SCREEN_TOP)
    {
       pTwilightPath->aPathPoints[1] = duskPoint;
       pTwilightPath->aPathPoints[4] = dawnPoint;
    }
+   else
+#endif
+   {
+      pTwilightPath->aPathPoints[1] = dawnPoint;
+      pTwilightPath->aPathPoints[4] = duskPoint;
+   }
 
-   //  (Actual GPath creation is done in twilight_path_draw_filled().)
+   //  (Actual GPath creation is done in twilight_path_render().)
 
    return;
 

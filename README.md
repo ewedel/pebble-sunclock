@@ -12,6 +12,10 @@ If for some reason that doesn't work, you can also [download Twilight Sunclock f
 
 # History
 
+3.0
+
+Add support for Pebble Time watch.
+
 2.4
 
 Remove sample JSON encodings from header comment of reverseGeoCode() in pebble-js-app.js.  These comments (!) were preventing the iOS Pebble app from loading / running the Sunclock's Pebblekit JS, including its access to location / timezone data.

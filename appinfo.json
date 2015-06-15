@@ -4,8 +4,10 @@
   "longName": "Twilight-Clock",
   "capabilities": [ "location", "configurable" ],
   "companyName": "",
-  "versionCode": 2,
-  "versionLabel": "2.4",
+  "versionCode": 3,
+  "versionLabel": "3.0",
+  "sdkVersion": "3",
+  "targetPlatforms": ["aplite", "basalt"],
   "watchapp": {
     "watchface": true
   },
@@ -23,22 +25,32 @@
       {
         "type": "png",
         "name": "IMAGE_LIGHT_GREY",
-        "file": "images/light_grey.png"
+        "file": "images/light_grey.png",
+        "targetPlatforms": [ "aplite" ]
       },
       {
         "type": "png",
         "name": "IMAGE_GREY",
-        "file": "images/grey.png"
+        "file": "images/grey.png",
+        "targetPlatforms": [ "aplite" ]
       },
       {
         "type": "png",
         "name": "IMAGE_DARK_GREY",
-        "file": "images/dark_grey.png"
+        "file": "images/dark_grey.png",
+        "targetPlatforms": [ "aplite" ]
       },
       {
         "type": "png-trans",
         "name": "IMAGE_HOUR",
-        "file": "images/hour.png"
+        "file": "images/hour.png",
+        "targetPlatforms": [ "aplite" ]
+      },
+      {
+        "type": "png",
+        "name": "IMAGE_HOUR",
+        "file": "images/hour.png",
+        "targetPlatforms": [ "basalt" ]
       },
       {
         "menuIcon": true,
@@ -67,7 +79,14 @@
       {
         "type": "png-trans",
         "name": "IMAGE_WATCHFACE",
-        "file": "images/watchface.png"
+        "file": "images/watchface.png",
+        "targetPlatforms": [ "aplite" ]
+      },
+      {
+        "type": "png",
+        "name": "IMAGE_WATCHFACE",
+        "file": "images/watchface.png",
+        "targetPlatforms": [ "basalt" ]
       }
     ]
   }

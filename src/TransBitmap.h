@@ -13,11 +13,12 @@ typedef struct
 {
 
    GBitmap* pBmpWhiteMask;
+#ifdef PBL_PLATFORM_APLITE
    GBitmap* pBmpBlackMask;
+#endif
 
 } TransBitmap;
 
-GBitmap* gbitmap_create_with_resource(uint32_t resource_id);
 
 /**
  *  Public means of instantiating TransBitmap.  We load the bitmaps needed to
@@ -34,9 +35,14 @@ GBitmap* gbitmap_create_with_resource(uint32_t resource_id);
  *  resource in the appinfo.json resources / media section (but expressed as
  *  a manifest, not a string).
  */
+#ifdef PBL_PLATFORM_APLITE
 #define transbitmap_create_with_resource_prefix(RESOURCE_ID_STEM_)  \
    transbitmap_create_with_resources(RESOURCE_ID_STEM_ ## _WHITE,   \
                                      RESOURCE_ID_STEM_ ## _BLACK)
+#elif PBL_PLATFORM_BASALT
+#define transbitmap_create_with_resource_prefix(RESOURCE_ID_STEM_)  \
+   transbitmap_create_with_resources(RESOURCE_ID_STEM_)
+#endif
 
 ///  Destroy a bitmap instance created using transbitmap_create_with_resource_prefix().
 void  transbitmap_destroy(TransBitmap *pTransBmp);
@@ -56,6 +62,9 @@ void  transbitmap_draw_in_rect(TransBitmap *pTransBmp, GContext* ctx, GRect rect
  *  Actual creation routine, use transbitmap_create_with_resource_prefix()
  *  instead of calling this directly.
  */
-TransBitmap* transbitmap_create_with_resources(uint32_t residWhiteMask,
-                                               uint32_t residBlackMask);
+TransBitmap* transbitmap_create_with_resources(uint32_t residWhiteMask
+#ifdef PBL_PLATFORM_APLITE
+                                               , uint32_t residBlackMask
+#endif
+                                               );
 

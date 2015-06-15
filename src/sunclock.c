@@ -126,20 +126,34 @@ void graphics_night_layer_update_callback(Layer *me, GContext *ctx)
 
    // ------------------------------------------------
 
-   //  start out with white screen, draw full-night black to bottom part
-   twilight_path_render(pTwiPathNight, ctx, GColorBlack, layerFrame);
+   //  With basalt added, this is now even more confusing than before.
+   //  For aplite, the first render carves (fills black) night region
+   //  out of a white screen.
+   //  For basalt, the first render carves (fills astro) astro region
+   //  out of a night-colored screen.
+   //  This difference is because aplite needs to support bitmap draws
+   //  via OR, and relies on the bitmap draws to add twilight "color".
+
+#if PBL_PLATFORM_BASALT
+   graphics_context_set_fill_color(ctx, TWI_COLOR_NIGHT);
+   graphics_fill_rect(ctx, layerFrame, 1, 0);
+#endif
+
+   //  aplite: start out with white screen, draw full-night black to bottom part
+   //  basalt: start out with night screen, fill all above night with astro.
+   twilight_path_render(pTwiPathNight, ctx, TWI_COLOR_ASTRO, layerFrame);
 
    //  turn all of white remainder (upper part of screen) into dark grey & then
    //  turn upper part of screen above astro twilight band back into white
-   twilight_path_render(pTwiPathAstro, ctx, GColorWhite, layerFrame);
+   twilight_path_render(pTwiPathAstro, ctx, TWI_COLOR_NAUTICAL, layerFrame);
 
    //  turn all of white remainder (upper part of screen) into medium grey &
    //  turn upper part of screen above nautical twilight band back into white
-   twilight_path_render(pTwiPathNautical, ctx, GColorWhite, layerFrame);
+   twilight_path_render(pTwiPathNautical, ctx, TWI_COLOR_CIVIL, layerFrame);
 
    //  turn all of white remainder (upper part of screen) into light grey &
    //  turn upper part of screen above civil twilight band back into white
-   twilight_path_render(pTwiPathCivil, ctx, GColorWhite, layerFrame);
+   twilight_path_render(pTwiPathCivil, ctx, TWI_COLOR_DAYTIME, layerFrame);
 
    // ------------------------------------------------
 
@@ -340,6 +354,7 @@ static void handle_minute_tick(struct tm *tick_time, TimeUnits units_changed)
    text_layer_set_text(pDayOfWeekLayer, dow_text);
    text_layer_set_text(pMonthLayer, mon_text);
 
+   text_layer_set_background_color(pTextTimeLayer, GColorClear);
    text_layer_set_text(pTextTimeLayer, time_text);
    text_layer_set_text_alignment(pTextTimeLayer, GTextAlignmentCenter);
 
@@ -349,6 +364,12 @@ static void handle_minute_tick(struct tm *tick_time, TimeUnits units_changed)
                                                          tick_time->tm_min));
 
    transrotbmp_set_pos_centered(pTransRotBmpHourHand, 0, 9 + 2);
+
+   //  oddly we seem to need to explicitly mark our base window layer dirty,
+   //  or else old time values will stack on top each other
+//#if PBL_PLATFORM_BASALT
+   layer_mark_dirty(pGraphicsNightLayer);
+//#endif
 
 // Vibrate Every Hour
 #if HOUR_VIBRATION
@@ -389,11 +410,16 @@ static void  sunclock_window_load(Window * pMyWindow)
    //  graphics directly in the window root layer, rather than creating a
    //  separate layer just for the bitmaps (& not using the base window's layer).
 //   pGraphicsNightLayer = layer_create(layer_get_bounds(window_get_root_layer(pWindow)));
+
+#if PBL_PLATFORM_BASALT
+   window_set_background_color(pWindow, TWI_COLOR_NIGHT);
+#endif
    pGraphicsNightLayer = window_get_root_layer(pWindow);
    if (pGraphicsNightLayer == NULL)
    {
       return;
    }
+
    layer_set_update_proc(pGraphicsNightLayer, graphics_night_layer_update_callback); 
 //   layer_add_child(window_get_root_layer(pWindow), pGraphicsNightLayer);
 
@@ -407,13 +433,13 @@ static void  sunclock_window_load(Window * pMyWindow)
    //  Yes, the apparent mismatch between ZENITH_ names and TwilightPath instance
    //  names is intended (if a bit unfortunate).
    pTwiPathNight    = twilight_path_create(ZENITH_ASTRONOMICAL, ENCLOSE_SCREEN_BOTTOM,
-                                           INVALID_RESOURCE);
+                                           TWI_APLITE_RES_ONLY(INVALID_RESOURCE));
    pTwiPathAstro    = twilight_path_create(ZENITH_NAUTICAL,     ENCLOSE_SCREEN_TOP,
-                                           RESOURCE_ID_IMAGE_DARK_GREY);
+                                           TWI_APLITE_RES_ONLY(RESOURCE_ID_IMAGE_DARK_GREY));
    pTwiPathNautical = twilight_path_create(ZENITH_CIVIL,        ENCLOSE_SCREEN_TOP,
-                                           RESOURCE_ID_IMAGE_GREY);
+                                           TWI_APLITE_RES_ONLY(RESOURCE_ID_IMAGE_GREY));
    pTwiPathCivil    = twilight_path_create(ZENITH_OFFICIAL,     ENCLOSE_SCREEN_TOP,
-                                           RESOURCE_ID_IMAGE_LIGHT_GREY);
+                                           TWI_APLITE_RES_ONLY(RESOURCE_ID_IMAGE_LIGHT_GREY));
    if ((pTwiPathNight == NULL) || (pTwiPathAstro == NULL) ||
        (pTwiPathNautical == NULL) || (pTwiPathCivil == NULL))
    {

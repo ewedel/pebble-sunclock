@@ -12,14 +12,19 @@
 typedef struct
 {
 
-   //  Bitmap data extracted from single "png-trans" resource by Pebble.
+   //  Bitmap data extracted from single "png-trans" resource by Pebble aplite.
+   //  In basalt, just the whole transparent png in pBmpWhiteMask.
    GBitmap* pBmpWhiteMask;
+#ifdef PBL_PLATFORM_APLITE
    GBitmap* pBmpBlackMask;
+#endif
 
    //  RotBitmapLayer only supports a single bitmap, so for transparency
-   //  we need two layers.
+   //  we need two layers in aplite.
    RotBitmapLayer* pRbmpWhiteLayer;
+#ifdef PBL_PLATFORM_APLITE
    RotBitmapLayer* pRbmpBlackLayer;
+#endif
 
 } TransRotBmp;
 
@@ -39,9 +44,17 @@ typedef struct
  *  resource in the appinfo.json resources / media section (but expressed as
  *  a manifest, not a string).
  */
+
+#ifdef PBL_PLATFORM_APLITE
+//  Use in aplite with appinfo.json resource "type": "png-trans"
 #define transrotbmp_create_with_resource_prefix(RESOURCE_ID_STEM_)  \
    transrotbmp_create_with_resources(RESOURCE_ID_STEM_ ## _WHITE,   \
                                      RESOURCE_ID_STEM_ ## _BLACK)
+#elif PBL_PLATFORM_BASALT
+//  Use in basalt with appinfo.json resource "type": "png"
+#define transrotbmp_create_with_resource_prefix(RESOURCE_ID_STEM_)  \
+   transrotbmp_create_with_resources(RESOURCE_ID_STEM_)
+#endif
 
    
 /**
@@ -76,6 +89,9 @@ void  transrotbmp_destroy(TransRotBmp *pTransBmp);
  *  Actual creation routine, use transrotbmp_create_with_resource_prefix()
  *  instead of calling this directly.
  */
-TransRotBmp* transrotbmp_create_with_resources(uint32_t residWhiteMask,
-                                               uint32_t residBlackMask);
+TransRotBmp* transrotbmp_create_with_resources(uint32_t residWhiteMask
+#ifdef PBL_PLATFORM_APLITE
+                                               , uint32_t residBlackMask
+#endif
+                                               );
 

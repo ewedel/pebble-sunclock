@@ -74,8 +74,13 @@ typedef struct {
     *  Bitmap resource to render to screen immediately before path fill.
     *  NULL if there is no bitmap to render (i.e., for our initial
     *  black-fill of the bottom part of the screen).
+    *  Non-null only for aplite platforms.
     */
    GBitmap* pBmpGrey;   // some shade of gray
+
+   /**
+    *  Color value used to fill within twilight path.
+    */
 
    /**
     *  Zenith value for our path.  This is the angle between the sun's zenith
@@ -83,8 +88,10 @@ typedef struct {
     */
    float  fZenith;
 
+#ifdef PBL_PLATFORM_APLITE
    ///  Does our path enclose the top or bottom part of the screen?
    ScreenPartToEnclose toEnclose;
+#endif
 
    ///  For convenience, preserve the dawn and dusk times which we compute.
 
@@ -102,6 +109,31 @@ typedef struct {
 
 } TwilightPath;
 
+#ifdef PBL_PLATFORM_APLITE
+
+//  Non-night colors are base for bitmap filling on top of.
+#define  TWI_COLOR_NIGHT      GColorBlack
+#define  TWI_COLOR_ASTRO      GColorBlack
+#define  TWI_COLOR_NAUTICAL   GColorWhite
+#define  TWI_COLOR_CIVIL      GColorWhite
+#define  TWI_COLOR_DAYTIME    GColorWhite
+
+#elif PBL_PLATFORM_BASALT
+#define  TWI_COLOR_NIGHT      GColorOxfordBlue
+#define  TWI_COLOR_ASTRO      GColorVividViolet   /*GColorPurple,     GColorDukeBlue*/
+#define  TWI_COLOR_NAUTICAL   GColorFolly         /*GColorIndigo*/
+#define  TWI_COLOR_CIVIL      GColorChromeYellow  /*GColorLavenderIndigo*/
+#define  TWI_COLOR_DAYTIME    GColorPastelYellow
+
+#endif
+
+
+//  Simplify parameter passage into twilight_path_create().
+#ifdef PBL_PLATFORM_APLITE
+#define TWI_APLITE_RES_ONLY(bitmap_id)  bitmap_id
+#elif PBL_PLATFORM_BASALT
+#define TWI_APLITE_RES_ONLY(bitmap_id)  INVALID_RESOURCE
+#endif
 
 /**
  *  Allocate a TwilightPath instance, save the supplied parameters in it,
@@ -113,8 +145,9 @@ typedef struct {
  *  @param zenithAngle Angle in degrees of sun position relative to zenith
  *             which we should use in calculating our graphics path.
  *  @param toEnclose Should graphics path enclose top or bottom of screen?
- *  @param bitmapResId Resource ID of bitmap to use when rendering.
- *                Set to INVALID_RESOURCE for no bitmap.
+ *  @param bitmapResId Aplite:  Resource ID of bitmap to use when rendering.
+ *                         Set to INVALID_RESOURCE for no bitmap.
+ *                     Basalt:  Color value to fill with (no bitmap used!).
  */
 TwilightPath * twilight_path_create(float zenithAngle, ScreenPartToEnclose toEnclose,
                                     uint32_t greyBitmapResourceId);
