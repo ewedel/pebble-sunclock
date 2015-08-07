@@ -12,6 +12,21 @@ If for some reason that doesn't work, you can also [download Twilight Sunclock f
 
 # History
 
+3.1
+
+[Pebble SDK 3.2]
+
+In Pebble Time variant, draw hour hand using path primitives instead of a bitmap. Pebble Time's antialiasing makes this look smoother.
+
+Also add a simple low-charge watch battery indicator: the pivot point of the hour hand changes color as follows:
+
+| Color   | Charge Remaining |
+| ------- |:----------------:|
+| (none)  |       > 30%      |
+| Yellow  |      <= 30%      |
+| Orange  |      <= 20%      |
+| Red     |      <= 10%      |
+
 3.0
 
 Add support for Pebble Time watch.

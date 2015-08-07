@@ -73,6 +73,17 @@ void  config_data_init()
 
    iRet = persist_read_data(CONFIG_DATA_KEY_CUR_LOCATION,
                             &curLocationCache, sizeof(curLocationCache));
+
+#if TESTING_USE_DUMMY_COORDS
+   curLocationCache.usVersion  = CONFIG_DATA_CUR_VERSION;
+   curLocationCache.usReserved = 0;
+   curLocationCache.fLatitude  = TESTING_DUMMY_LATITUDE;
+   curLocationCache.fLongitude = TESTING_DUMMY_LONGITUDE;
+   curLocationCache.iUtcOffset = TESTING_DUMMY_UTC_OFFSET;
+   curLocationCache.timeLastUpdate = time(NULL);
+   iRet = sizeof(curLocationCache);
+#endif
+
 #if TESTING_DISABLE_CACHE_READ
    iRet = 0;
 #endif

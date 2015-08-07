@@ -14,6 +14,16 @@
 ///  Set true to disable normal load-time send of location update request to phone.
 #define  TESTING_DISABLE_LOCATION_REQUEST  0
 
+///  Set to true to use following dummy coords.
+#define  TESTING_USE_DUMMY_COORDS    0
+
+///  Values per test coord send log message:
+//  sending lat/long 37.3763061 / -122.0918526, utcOff secs = 25200
+
+#define  TESTING_DUMMY_LATITUDE       37.3763061
+#define  TESTING_DUMMY_LONGITUDE    -122.0918526
+#define  TESTING_DUMMY_UTC_OFFSET  25200
+
 
 #endif  // #ifndef sunclock_testing_h__
 

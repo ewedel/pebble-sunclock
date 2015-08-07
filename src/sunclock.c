@@ -15,6 +15,7 @@
 #include "config.h"
 #include "ConfigData.h"
 #include "helpers.h"
+#include "hour_hand.h"
 #include "MessageWindow.h"
 #include "messaging.h"
 #include "my_math.h"
@@ -61,9 +62,6 @@ GFont pFontMediumText = 0;
 // system font (Raster Gothic 18), doesn't need unloading:
 GFont pFontSmallText = 0;
 
-
-///  Hour hand bitmap, a transparent png which can rotate to any angle.
-TransRotBmp* pTransRotBmpHourHand = 0;
 
 /**
  *  Watchface dial: a transparent png which supplies hour marks, a face
@@ -359,11 +357,10 @@ static void handle_minute_tick(struct tm *tick_time, TimeUnits units_changed)
    text_layer_set_text_alignment(pTextTimeLayer, GTextAlignmentCenter);
 
    //  update hour hand position
-   transrotbmp_set_angle(pTransRotBmpHourHand,
-                         TRIG_MAX_ANGLE * get24HourAngle(tick_time->tm_hour,
-                                                         tick_time->tm_min));
+   int32_t hour_angle = TRIG_MAX_ANGLE * get24HourAngle(tick_time->tm_hour,
+                                                        tick_time->tm_min);
 
-   transrotbmp_set_pos_centered(pTransRotBmpHourHand, 0, 9 + 2);
+   hour_hand_set_angle(hour_angle);
 
    //  oddly we seem to need to explicitly mark our base window layer dirty,
    //  or else old time values will stack on top each other
@@ -472,13 +469,7 @@ static void  sunclock_window_load(Window * pMyWindow)
 
    //  Add hour hand after moon phase:  looks weird (wrong) to see phase
    //  on top of the hour hand.
-   pTransRotBmpHourHand = transrotbmp_create_with_resource_prefix(RESOURCE_ID_IMAGE_HOUR);
-   if (pTransRotBmpHourHand == NULL)
-   {
-      return;
-   }
-   transrotbmp_set_src_ic(pTransRotBmpHourHand, GPoint(9, 56));
-   transrotbmp_add_to_layer(pTransRotBmpHourHand, window_get_root_layer(pWindow));
+   hour_hand_init (pWindow);
 
    //  Same rectangle used for day of week and date text:
    //  text alignment avoids conflicts in the two layers.
@@ -566,6 +557,9 @@ static void  sunclock_window_load(Window * pMyWindow)
 static void  sunclock_window_unload(Window * pMyWindow)
 {
 
+
+   //BUGBUG: pWindow == pMyWindow ??
+
    tick_timer_service_unsubscribe();
 
    SAFE_DESTROY(text_layer, pTextSunsetLayer);
@@ -579,8 +573,7 @@ static void  sunclock_window_unload(Window * pMyWindow)
    transbitmap_destroy(pTransBmpWatchface);
    pTransBmpWatchface = 0;
 
-   transrotbmp_destroy(pTransRotBmpHourHand);
-   pTransRotBmpHourHand = 0;
+   hour_hand_deinit();
 
    SAFE_DESTROY(twilight_path, pTwiPathNight);
    SAFE_DESTROY(twilight_path, pTwiPathAstro);
