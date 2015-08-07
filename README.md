@@ -27,6 +27,8 @@ Also add a simple low-charge watch battery indicator: the pivot point of the hou
 | Orange  |      <= 20%      |
 | Red     |      <= 10%      |
 
+Thanks to Andrea Carlo Butti for suggesting this type of indicator, though I morphed it from BT-connected to low-battery. And mistakes of course are mine.
+
 3.0
 
 Add support for Pebble Time watch.
