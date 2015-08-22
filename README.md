@@ -12,6 +12,12 @@ If for some reason that doesn't work, you can also [download Twilight Sunclock f
 
 # History
 
+3.2
+
+Restore auto-request of location data on watchface startup. Had unintentionally removed this when chasing an iOS-specific issue.
+
+It still asked when location was not cached on the watch, but a forced location query is helpful when changing locations / timezones. Now it once again asks at each startup regardless of whether location is cached, and will of course use the cached value until anything newer comes along.
+
 3.1
 
 [Pebble SDK 3.2]

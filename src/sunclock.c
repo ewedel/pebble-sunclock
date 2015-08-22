@@ -41,6 +41,10 @@ const VibePattern hour_pattern = {
 };
 #endif
 
+///  Minimum number of requests issued each time watchface is started.
+///  We use more than one since sometimes the first is lost.
+unsigned cInitialLatLongRequestsRemaining = 2;
+
 TextLayer *pTextTimeLayer      = 0;
 TextLayer *pTextSunriseLayer   = 0;
 TextLayer *pTextSunsetLayer    = 0;
@@ -114,6 +118,11 @@ void graphics_night_layer_update_callback(Layer *me, GContext *ctx)
       app_msg_RequestLatLong();
 
       return;
+   }
+   else if (cInitialLatLongRequestsRemaining > 0)
+   {
+      cInitialLatLongRequestsRemaining --;
+      app_msg_RequestLatLong();
    }
 
    GRect layerFrame = layer_get_frame(me);

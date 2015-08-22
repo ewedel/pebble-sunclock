@@ -1,5 +1,5 @@
 Log of various space values reported by pebble build and runtime.
-All values are in bytes.
+All values are in bytes and are for Aplite only.
 
 Note that the build-reported "free" RAM is used for heap.
 
@@ -29,3 +29,4 @@ Note that the build-reported "free" RAM is used for heap.
 
 12/01/2014  v2.8, no win dstr 14502 10074    9388  9144      244
 
+08/22/2015  v3.2              14632  9944
