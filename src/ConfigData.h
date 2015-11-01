@@ -18,17 +18,29 @@ void  config_data_init();
 /**
  *  Convenience function to simply check whether location data is persisted,
  *  without returning the values.
- *  
+ *
  *  @return \c true if persisted location info is available, else \c false.
  */
 bool  config_data_location_avail();
 
 /**
+ *  Has timezone offset changed since our last check.
+ *  Intended to detect whether the Pebble has changed its DST flag, or been
+ *  updated by the phone.
+ *
+ *  Only makes sense in SDK v3 and later, since that is when Pebble first (!)
+ *  added true on-watch support for timezones and DST.
+ */
+#ifndef PBL_SDK_2
+bool  config_has_tz_offset_changed();
+#endif
+
+/**
  *  Read location data from our watch-based persistent storage.
- *  
+ *
  *  Any of the supplied output pointers may be NULL if the caller is not
  *  interested in the particular field.
- *  
+ *
  *  @param pLat Points to var to receive latitude coord: degrees from equator,
  *             positive for North, negative for South.
  *  @param pLong Points to var to receive longitude coord: degrees from
@@ -43,11 +55,28 @@ bool  config_data_location_avail();
  *  @return \c true if persisted location info is available, else \c false.
  *          In the latter case, all other returns are undefined.
  */
-bool  config_data_location_get(float* pLat, float *pLong, int32_t *pUtcOffset,
-                               time_t* pLastUpdateTime);
+//bool  config_data_location_get(float* pLat, float *pLong, int32_t *pUtcOffset,
+//                               time_t* pLastUpdateTime);
 
+/** 
+ *  Returns most recent latitude fed us by the phone.
+ *  
+ *  @return Degrees from equator.  Positive for North, negative for South.
+ */
 float  config_data_get_latitude();
+
+/**
+ *  Returns most recent longitude fed us by the phone.
+ * 
+ * @return Degrees from Greenwich.  Positive for East, negative for West.
+ */
 float  config_data_get_longitude();
+
+/**
+ *  Returns timezone offset.
+ * 
+ * @return Offset of time from UTC, in hours.  Add this to UTC to obtain local time.
+ */
 float  config_data_get_tz_in_hours();
 
 /**

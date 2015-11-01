@@ -34,6 +34,9 @@ Window *pWindow;
 ///  pWindow & all supporting layers, etc. initialized ok?
 bool initialized_ok = false;
 
+///  Is watchface's message pump running?  Not true until our first window proc callback.
+bool fMessagePumpRunning = false;
+
 #if HOUR_VIBRATION
 const VibePattern hour_pattern = {
    .durations = (uint32_t[]){ 200, 100, 200, 100, 200 },
@@ -41,9 +44,11 @@ const VibePattern hour_pattern = {
 };
 #endif
 
+#define INITIAL_LAT_LONG_REQUESTS_MAX  2
+
 ///  Minimum number of requests issued each time watchface is started.
 ///  We use more than one since sometimes the first is lost.
-unsigned cInitialLatLongRequestsRemaining = 2;
+unsigned cInitialLatLongRequestsRemaining = INITIAL_LAT_LONG_REQUESTS_MAX;
 
 TextLayer *pTextTimeLayer      = 0;
 TextLayer *pTextSunriseLayer   = 0;
@@ -103,6 +108,8 @@ TwilightPath* pTwiPathCivil = 0;
 void graphics_night_layer_update_callback(Layer *me, GContext *ctx)
 {
 
+
+   fMessagePumpRunning = true;
 
    //  Don't do our display hold-off until our message pump is running.
    //  Calling back a window update handler, of which this is the first,
@@ -344,6 +351,31 @@ static void handle_minute_tick(struct tm *tick_time, TimeUnits units_changed)
 
    (void) units_changed;
 
+#ifndef PBL_SDK_2
+   if (config_has_tz_offset_changed())
+   {
+      // in case change is due to physical relocation (e.g., just landed
+      // and turned phone back on after a flight), also request updated
+      // location info from the phone.  Doesn't hurt to ask anyway. ;-)
+      if (fMessagePumpRunning)
+      {
+         //  cause graphics_night_layer_update_callback(), whose invocation
+         //  we trigger via updateDayAndNightInfo(), to ask phone for updated
+         //  location info
+         cInitialLatLongRequestsRemaining = INITIAL_LAT_LONG_REQUESTS_MAX;
+      }
+
+      updateDayAndNightInfo(true /* update_everything */);
+   }
+   else if (cInitialLatLongRequestsRemaining > 0)
+   {
+      //  graphics_night_layer_update_callback() will handle the first request
+      //  but its up to us to send any additional ones.
+      cInitialLatLongRequestsRemaining --;
+      app_msg_RequestLatLong();
+   }
+#endif
+
    // Need to be static because they're used by the system later.
    static char time_text[] = "00:00";
    static char dow_text[] = "xxx";
@@ -578,6 +610,8 @@ static void  sunclock_window_unload(Window * pMyWindow)
    SAFE_DESTROY(text_layer, pMoonLayer);
    SAFE_DESTROY(text_layer, pTextTimeLayer);
    SAFE_DESTROY(layer,      pGraphicsNightLayer);
+
+   fMessagePumpRunning = false;
 
    transbitmap_destroy(pTransBmpWatchface);
    pTransBmpWatchface = 0;

@@ -12,6 +12,14 @@ If for some reason that doesn't work, you can also [download Twilight Sunclock f
 
 # History
 
+3.3 (not yet tagged)
+
+[Pebble SDK 3.6]
+
+For SDK v3 and higher, add support for watch's now-built-in timezone info.  This lets the watchface update for daylight savings time entry/exit without phone involvement.
+
+Refine location auto-request code so secondary requests are sent sooner (a minute apart), and if a change in built-in timezone offset is seen trigger a location request also in case the offset change is due to physical relocation instead of DST entry/exit.
+
 3.2
 
 Restore auto-request of location data on watchface startup. Had unintentionally removed this when chasing an iOS-specific issue.

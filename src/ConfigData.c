@@ -52,22 +52,68 @@ static ConfigDataCurLocation  curLocationCache;
 ///  Cached copy of timezone-in-hours.  Valid after config_data_init() is called.
 static float curTimezoneInHours = 0;
 
+#ifndef PBL_SDK_2
+/**
+ *  For SDK 3 and later, we monitor Pebble's own understanding of timezone.
+ *  This is the Pebble's local offset from UTC in seconds, last time we
+ *  checked (typically via config_has_tz_offset_changed()).
+ *  
+ *  Uses normal UTC-relative sign, so PST is -(8 * 3600).
+ */
+static int curTimezoneInSeconds = 0;
+#endif
+
 
 /**
  *  Silly little helper because we persist a "UTC offset" (from local) in seconds,
- *  but the app wants local offset from UTC (tradition tz info) expressed in hours
+ *  but the app wants local offset from UTC (traditional tz info) expressed in hours
  *  and fractions of an hour.
- *  
+ *
  *  Since this is floating point, we calculate it at config updates rather
  *  than on the fly.
  */
 static void  compute_tz_in_hours()
 {
+#ifdef PBL_SDK_2
+   //  our persisted offset is from local, so sign-reverse to get normal convention.
    curTimezoneInHours = -(curLocationCache.iUtcOffset / 3600.0);
+#else
+   //  Ignore UTC config explicitly fed us by phone, always use Pebble's own offset.
+   curTimezoneInHours = curTimezoneInSeconds / 3600.0;
+#endif
 }
+
+
+#ifndef PBL_SDK_2
+///  Return Pebble watch's effective local time offset from UTC, factoring in DST.
+static int  get_pebble_tz_secs()
+{
+   time_t   tmNow = time(NULL);
+   struct tm * pTm = localtime(&tmNow);
+
+   int gmtoff = pTm->tm_gmtoff;
+   if (pTm->tm_isdst > 0)
+   {
+      gmtoff += 3600;
+   }
+   else if (pTm->tm_isdst < 0)
+   {
+      //  tm_isdst < 0 means "unknown", so we fall back to our config value.
+      gmtoff = -curLocationCache.iUtcOffset; 
+   }
+
+   return gmtoff;
+}
+#endif  // #ifndef PBL_SDK_2
+
 
 void  config_data_init()
 {
+
+#ifndef PBL_SDK_2
+   ///  Initialize our reference copy of Pebble's own TZ offset
+   curTimezoneInSeconds = get_pebble_tz_secs();
+#endif
 
    int iRet;
 
@@ -108,6 +154,25 @@ bool  config_data_location_avail()
 }
 
 
+#ifndef PBL_SDK_2
+bool  config_has_tz_offset_changed()
+{
+
+   int latestTimezoneInSeconds = get_pebble_tz_secs();
+   if (latestTimezoneInSeconds != curTimezoneInSeconds)
+   {
+      curTimezoneInSeconds = latestTimezoneInSeconds;
+      compute_tz_in_hours();
+      return true;
+   }
+
+   return false;
+
+}
+#endif  // #ifndef PBL_SDK_2
+
+
+static
 bool  config_data_location_get(float* pLat, float *pLong, int32_t *pUtcOffset,
                                time_t* pLastUpdateTime)
 {
