@@ -20,7 +20,7 @@ For SDK v3 and higher, add support for watch's now-built-in timezone info.  This
 
 Refine location auto-request code so secondary requests are sent sooner (a minute apart), and if a change in built-in timezone offset is seen trigger a location request also in case the offset change is due to physical relocation instead of DST entry/exit.
 
-On color Pebbles change the hour hand / gnomon shadow so it is more visible: during night-time it now renders as grey rather than black.  In daytime it is black as before.
+On color Pebbles change the hour hand / gnomon shadow so it is more visible: during night-time it now renders as grey rather than black.  In daytime it is black as before.  Thanks to Andrea Carlo Butti for suggesting this.
 
 3.2
 
