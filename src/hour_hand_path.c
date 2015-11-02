@@ -29,8 +29,8 @@ static const GPathInfo HOUR_HAND_POINTS = {
   6,
   (GPoint[]) { { -4,  12 },    // lower left
                { -5,   0 },    // bulge to left of axis
-               { -3, -56 },    // upper left
-               {  3, -56 },    // upper right
+               { -3, -57 },    // upper left
+               {  3, -57 },    // upper right
                {  5,   0 },    // bulge to right of axis
                {  4,  12 }     // bottom right
              }
@@ -60,12 +60,20 @@ static BatteryChargeState  s_battery_charge = { 10, false, false };
 
 static int32_t  s_hour_angle;
 
+static bool  s_is_night_now;
+
 
 void  hour_hand_set_angle(int32_t hour_angle)
 {
    s_hour_angle = hour_angle;
 //BUGBUG - when forcing positions for graphics testing:
 //   s_hour_angle = 3*(TRIG_MAX_ANGLE / 4);
+}
+
+
+void  hour_hand_set_is_night (bool fIsNightNow)
+{
+   s_is_night_now = fIsNightNow;
 }
 
 
@@ -85,17 +93,29 @@ static void path_layer_update_callback(Layer *path_layer, GContext *ctx)
 
    gpath_rotate_to(s_hour_hand_path, s_hour_angle);    // angular units?
 
-   graphics_context_set_fill_color(ctx, GColorFromRGBA(HR_HND_RGB_RED,
-                                                       HR_HND_RGB_GREEN,
-                                                       HR_HND_RGB_BLUE,
-                                                       HR_HND_RBG_ALPHA));
+// TODO:  revisit once we can get alpha fills in a gpath!
+//   graphics_context_set_fill_color(ctx, GColorFromRGBA(HR_HND_RGB_RED,
+//                                                       HR_HND_RGB_GREEN,
+//                                                       HR_HND_RGB_BLUE,
+//                                                       HR_HND_RBG_ALPHA));
 
-   gpath_draw_filled(ctx, s_hour_hand_path);
+   if (s_is_night_now)
+   {
+      graphics_context_set_fill_color(ctx, GColorDarkGray);
+   }
+   else
+   {
+      graphics_context_set_fill_color(ctx, GColorBlack);
+   }
 
+   gpath_draw_filled(ctx, s_hour_hand_path); 
+
+   //  white outline seems to look better with both fill colors
    graphics_context_set_stroke_color(ctx, GColorWhite);
+
    gpath_draw_outline(ctx, s_hour_hand_path);
 
-   //  draw stock grey hub over axis
+   //  draw stock black hub over axis / hour hand, regardless of hour hand color
 
    //  (same fill color as hour hand, except 100% opaque)
    graphics_context_set_fill_color(ctx, GColorFromRGB(HR_HND_RGB_RED,

@@ -12,13 +12,15 @@ If for some reason that doesn't work, you can also [download Twilight Sunclock f
 
 # History
 
-3.3 (not yet tagged)
+3.3
 
 [Pebble SDK 3.6]
 
 For SDK v3 and higher, add support for watch's now-built-in timezone info.  This lets the watchface update for daylight savings time entry/exit without phone involvement.
 
 Refine location auto-request code so secondary requests are sent sooner (a minute apart), and if a change in built-in timezone offset is seen trigger a location request also in case the offset change is due to physical relocation instead of DST entry/exit.
+
+On color Pebbles change the hour hand / gnomon shadow so it is more visible: during night-time it now renders as grey rather than black.  In daytime it is black as before.
 
 3.2
 

@@ -403,6 +403,15 @@ static void handle_minute_tick(struct tm *tick_time, TimeUnits units_changed)
 
    hour_hand_set_angle(hour_angle);
 
+#if HOUR_HAND_USE_PATH
+   //  set hour hand's appearance based on whether it is over the night
+   //  part of the background
+   float localTickTime = (float) tick_time->tm_hour + tick_time->tm_min / 60.0;
+
+   hour_hand_set_is_night ((localTickTime < pTwiPathAstro->fDawnTime) ||
+                           (localTickTime > pTwiPathAstro->fDuskTime));
+#endif
+
    //  oddly we seem to need to explicitly mark our base window layer dirty,
    //  or else old time values will stack on top each other
 //#if PBL_PLATFORM_BASALT

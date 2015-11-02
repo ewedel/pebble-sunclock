@@ -95,15 +95,15 @@ typedef struct {
 
    ///  For convenience, preserve the dawn and dusk times which we compute.
 
-   /** 
-    *  Time of zenith dawn at our current location, for the date supplied to
-    *  twilight_path_compute_current
+   /**
+    *  Local time (hour plus fraction) of fZenith's "dawn" at our current
+    *  location, for the date supplied to twilight_path_compute_current().
     */
    float  fDawnTime;
 
    /**
-    *  Time of zenith dusk at our current location, for the date supplied to
-    *  twilight_path_compute_current
+    *  Local time (hour plus fraction) of fZenith's "dusk" at our current
+    *  location, for the date supplied to twilight_path_compute_current().
     */
    float  fDuskTime;
 

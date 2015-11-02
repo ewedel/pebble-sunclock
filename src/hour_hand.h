@@ -32,5 +32,14 @@ void  hour_hand_set_angle(int32_t hour_angle);
 #endif
 
 
+#if HOUR_HAND_USE_PATH
+/**
+ *  Set hour hand's appearance based on whether it is over the night part
+ *  of the background.
+ */
+void  hour_hand_set_is_night (bool fIsNightNow);
+#endif
+
+
 #endif  // #ifndef hour_hand_h__
 
