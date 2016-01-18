@@ -118,7 +118,7 @@ typedef struct {
 #define  TWI_COLOR_CIVIL      GColorWhite
 #define  TWI_COLOR_DAYTIME    GColorWhite
 
-#elif PBL_PLATFORM_BASALT
+#elif PBL_PLATFORM_BASALT || PBL_PLATFORM_CHALK
 #define  TWI_COLOR_NIGHT      GColorOxfordBlue
 #define  TWI_COLOR_ASTRO      GColorVividViolet   /*GColorPurple,     GColorDukeBlue*/
 #define  TWI_COLOR_NAUTICAL   GColorFolly         /*GColorIndigo*/
@@ -131,7 +131,7 @@ typedef struct {
 //  Simplify parameter passage into twilight_path_create().
 #ifdef PBL_PLATFORM_APLITE
 #define TWI_APLITE_RES_ONLY(bitmap_id)  bitmap_id
-#elif PBL_PLATFORM_BASALT
+#elif PBL_PLATFORM_BASALT || PBL_PLATFORM_CHALK
 #define TWI_APLITE_RES_ONLY(bitmap_id)  INVALID_RESOURCE
 #endif
 

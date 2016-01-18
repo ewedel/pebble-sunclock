@@ -24,7 +24,7 @@ void  hour_hand_set_angle(int32_t hour_angle);
 # define HOUR_HAND_USE_PATH 0
 # define HOUR_HAND_USE_BITMAP 1
 
-#elif PBL_PLATFORM_BASALT
+#elif PBL_PLATFORM_BASALT || PBL_PLATFORM_CHALK
 
 # define HOUR_HAND_USE_PATH 1
 # define HOUR_HAND_USE_BITMAP 0

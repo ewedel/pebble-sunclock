@@ -7,17 +7,18 @@
 #include  "TwilightPath.h"
 
 #include  "ConfigData.h"
+#include  "geometry.h"
 #include  "helpers.h"
 #include  "my_math.h"
 #include  "suncalc.h"
 
 
 //  Values used in our static (non-computed) points to indicate a screen edge.
-//  These are a pixel over half of each screen dimension.  Why the extra pixel?
-#define X_LEFT    (-73)
-#define X_RIGHT   (73)
-#define Y_TOP     (-84)
-#define Y_BOTTOM  (84)
+//  Right/left are a pixel over half of each screen dimension.  Why?
+#define X_RIGHT   (DISP_WIDTH / 2 + 1)    // (classic:  73)
+#define X_LEFT    (-X_RIGHT)              // (classic: -73)
+#define Y_BOTTOM  (DISP_HEIGHT / 2)       // (classic:  84)
+#define Y_TOP     (-Y_BOTTOM)             // (classic: -84)
 
 
 TwilightPath * twilight_path_create(float zenithAngle, ScreenPartToEnclose toEnclose,
@@ -49,7 +50,7 @@ TwilightPath * twilight_path_create(float zenithAngle, ScreenPartToEnclose toEnc
    //  Most path points are constant for life of this TwilightPath instance
    //  (they depend only on ScreenPartToEnclose).  But the point order varies
    //  depending on toEnclose (see aPathPoints declaration comment in header).
-   pMyRet->aPathPoints[0] = GPoint(0, 9);    // always "center" hub
+   pMyRet->aPathPoints[0] = GPoint(0, FACE_VOFFSET);    // always "center" hub
 #ifdef PBL_PLATFORM_APLITE
    pMyRet->toEnclose = toEnclose;
    if (toEnclose != ENCLOSE_SCREEN_TOP)
@@ -164,12 +165,12 @@ const float timeFudge = 12.0f;
    //  Update dawn / dusk points to reflect zenith at present location / date.
 
    fDawnTime += timeFudge;
-   GPoint dawnPoint = GPoint((int16_t)(my_sin(fDawnTime / 24 * M_PI * 2) * 120),
-                             9 - (int16_t)(my_cos(fDawnTime / 24 * M_PI * 2) * 120));
+   GPoint dawnPoint = GPoint((int16_t)(my_sin(fDawnTime / 24 * M_PI * 2) * FULL_DISP_RADIUS),
+                             FACE_VOFFSET - (int16_t)(my_cos(fDawnTime / 24 * M_PI * 2) * FULL_DISP_RADIUS));
 
    fDuskTime += timeFudge;
-   GPoint duskPoint = GPoint((int16_t)(my_sin(fDuskTime / 24 * M_PI * 2) * 120),
-                             9 - (int16_t)(my_cos(fDuskTime / 24 * M_PI * 2) * 120));
+   GPoint duskPoint = GPoint((int16_t)(my_sin(fDuskTime / 24 * M_PI * 2) * FULL_DISP_RADIUS),
+                             FACE_VOFFSET - (int16_t)(my_cos(fDuskTime / 24 * M_PI * 2) * FULL_DISP_RADIUS));
 
    //  do the point init which twilight_path_create() couldn't.
 #ifdef PBL_PLATFORM_APLITE    // basalt always encloses screen top

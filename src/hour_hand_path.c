@@ -11,6 +11,9 @@
 
 #include  "hour_hand.h"
 
+#include  "geometry.h"
+#include  "testing.h"
+
 
 #if HOUR_HAND_USE_PATH
 
@@ -25,14 +28,14 @@
 //  We offset our points.txt values (pixel coords from hour.png) so that the origin (0,0)
 //  is the hour hand's axis point.
 
-static const GPathInfo HOUR_HAND_POINTS = { 
+static const GPathInfo HOUR_HAND_POINTS = {
   6,
-  (GPoint[]) { { -4,  12 },    // lower left
+  (GPoint[]) { { -4,  HOUR_HAND_S_RADIUS },    // lower left
                { -5,   0 },    // bulge to left of axis
-               { -3, -57 },    // upper left
-               {  3, -57 },    // upper right
+               { -3, -HOUR_HAND_L_RADIUS },    // upper left
+               {  3, -HOUR_HAND_L_RADIUS },    // upper right
                {  5,   0 },    // bulge to right of axis
-               {  4,  12 }     // bottom right
+               {  4,  HOUR_HAND_S_RADIUS }     // bottom right
              }
 };
 
@@ -121,8 +124,8 @@ static void path_layer_update_callback(Layer *path_layer, GContext *ctx)
    graphics_context_set_fill_color(ctx, GColorFromRGB(HR_HND_RGB_RED,
                                                       HR_HND_RGB_GREEN,
                                                       HR_HND_RGB_BLUE));
-   graphics_fill_circle(ctx, s_center, 7);
-   graphics_draw_circle(ctx, s_center, 7);
+   graphics_fill_circle(ctx, s_center, HOUR_HAND_HUB_RADIUS);
+   graphics_draw_circle(ctx, s_center, HOUR_HAND_HUB_RADIUS);
 
    //  optionally write a smaller circle in center of hub, whose color reflects battery charge.
    //  Range of light yellow .. dark red suggested somewhere online, for another face.
@@ -131,15 +134,15 @@ static void path_layer_update_callback(Layer *path_layer, GContext *ctx)
    uint8_t charge_percent = s_battery_charge.charge_percent;
    GColor charge_color;
 
-   if (charge_percent <= 10)
+   if ((charge_percent <= CHARGE_PCT_CRITICAL) || TESTING_SHOW_LOW_BATTERY)
    {
       charge_color = GColorRed;
    }
-   else if (charge_percent <= 20)
+   else if (charge_percent <= CHARGE_PCT_WARN)
    {
       charge_color = GColorOrange;
    }
-   else if (charge_percent <= 30)
+   else if (charge_percent <= CHARGE_PCT_NOTICE)
    {
       charge_color = GColorChromeYellow;     // more orange than orange?  :-)
    }
@@ -151,7 +154,7 @@ static void path_layer_update_callback(Layer *path_layer, GContext *ctx)
 
    graphics_context_set_fill_color(ctx, charge_color);
 
-   graphics_fill_circle(ctx, s_center, 5);
+   graphics_fill_circle(ctx, s_center, HOUR_HAND_CHARGE_RADIUS);
 
 }
 
@@ -172,7 +175,7 @@ void  hour_hand_init (const Window *window)
    s_hour_hand_path = gpath_create(&HOUR_HAND_POINTS );
 
    //  hour hand axis: not quite the center of the screen
-   s_center = GPoint((bounds.size.w / 2), (bounds.size.h / 2) + 11);
+   s_center = GPoint(FACE_CENTER_X, FACE_CENTER_Y);
    gpath_move_to(s_hour_hand_path, s_center);
 
    // track current battery charge level

@@ -39,7 +39,7 @@ typedef struct
 #define transbitmap_create_with_resource_prefix(RESOURCE_ID_STEM_)  \
    transbitmap_create_with_resources(RESOURCE_ID_STEM_ ## _WHITE,   \
                                      RESOURCE_ID_STEM_ ## _BLACK)
-#elif PBL_PLATFORM_BASALT
+#elif PBL_PLATFORM_BASALT || PBL_PLATFORM_CHALK
 #define transbitmap_create_with_resource_prefix(RESOURCE_ID_STEM_)  \
    transbitmap_create_with_resources(RESOURCE_ID_STEM_)
 #endif

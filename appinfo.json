@@ -5,9 +5,9 @@
   "capabilities": [ "location", "configurable" ],
   "companyName": "",
   "versionCode": 3,
-  "versionLabel": "3.3",
+  "versionLabel": "3.4",
   "sdkVersion": "3",
-  "targetPlatforms": ["aplite", "basalt"],
+  "targetPlatforms": ["aplite", "basalt", "chalk"],
   "watchapp": {
     "watchface": true
   },

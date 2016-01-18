@@ -61,7 +61,7 @@ TransRotBmp* pMyRet;
    //    http://forums.getpebble.com/discussion/comment/36006/#Comment_36006
    rot_bitmap_set_compositing_mode(pMyRet->pRbmpWhiteLayer, GCompOpOr);
    rot_bitmap_set_compositing_mode(pMyRet->pRbmpBlackLayer, GCompOpClear);
-#elif PBL_PLATFORM_BASALT
+#elif PBL_PLATFORM_BASALT || PBL_PLATFORM_CHALK
    //  for basalt we are supposed to use "png" with GCompOpSet, per
    //    http://developer.getpebble.com/blog/2015/05/13/tips-and-tricks-transparent-images/
    rot_bitmap_set_compositing_mode(pMyRet->pRbmpWhiteLayer, GCompOpSet);
@@ -162,7 +162,7 @@ void  transrotbmp_draw_in_rect(TransRotBmp *pTransBmp, GContext* ctx, GRect rect
    graphics_context_set_compositing_mode(ctx, GCompOpClear);
    graphics_draw_bitmap_in_rect(ctx, pTransBmp->pBmpBlackMask, rect);
 
-#elif PBL_PLATFORM_BASALT
+#elif PBL_PLATFORM_BASALT || PBL_PLATFORM_CHALK
    //  for basalt we are supposed to use "png" with GCompOpSet, per
    //    http://developer.getpebble.com/blog/2015/05/13/tips-and-tricks-transparent-images/
    graphics_context_set_compositing_mode(ctx, GCompOpSet);

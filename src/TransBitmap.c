@@ -80,7 +80,7 @@ void  transbitmap_draw_in_rect(TransBitmap *pTransBmp, GContext* ctx, GRect rect
 
 #ifdef PBL_PLATFORM_APLITE
    graphics_context_set_compositing_mode(ctx, GCompOpOr);
-#elif PBL_PLATFORM_BASALT
+#elif PBL_PLATFORM_BASALT || PBL_PLATFORM_CHALK
    graphics_context_set_compositing_mode(ctx, GCompOpSet);
 #endif
    graphics_draw_bitmap_in_rect(ctx, pTransBmp->pBmpWhiteMask, rect);

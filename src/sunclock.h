@@ -15,6 +15,10 @@ void  sunclock_handle_deinit(void);
 
 void sunclock_coords_recvd(float latitude, float longitude, int32_t utcOffset);
 
+#if ! PBL_PLATFORM_APLITE
+//  Does given time fall over dark or light portion of watchface?
+bool  is_dark_time(int localHour, int localMinute);
+#endif
 
 //  Some resources loaded by sunclock_handle_init() which might be useful elsewhere:
 

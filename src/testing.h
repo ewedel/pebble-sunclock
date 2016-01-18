@@ -17,6 +17,9 @@
 ///  Set to true to use following dummy coords.
 #define  TESTING_USE_DUMMY_COORDS    0
 
+///  Set to true to force display of low-battery hour hand hub.
+#define  TESTING_SHOW_LOW_BATTERY    0
+
 ///  Values per test coord send log message:
 //  sending lat/long 37.3763061 / -122.0918526, utcOff secs = 25200
 

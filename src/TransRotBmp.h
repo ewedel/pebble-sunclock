@@ -50,7 +50,7 @@ typedef struct
 #define transrotbmp_create_with_resource_prefix(RESOURCE_ID_STEM_)  \
    transrotbmp_create_with_resources(RESOURCE_ID_STEM_ ## _WHITE,   \
                                      RESOURCE_ID_STEM_ ## _BLACK)
-#elif PBL_PLATFORM_BASALT
+#elif PBL_PLATFORM_BASALT || PBL_PLATFORM_CHALK
 //  Use in basalt with appinfo.json resource "type": "png"
 #define transrotbmp_create_with_resource_prefix(RESOURCE_ID_STEM_)  \
    transrotbmp_create_with_resources(RESOURCE_ID_STEM_)

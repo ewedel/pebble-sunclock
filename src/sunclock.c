@@ -14,6 +14,8 @@
 
 #include "config.h"
 #include "ConfigData.h"
+#include "dial_mask_path.h"
+#include "geometry.h"
 #include "helpers.h"
 #include "hour_hand.h"
 #include "MessageWindow.h"
@@ -51,9 +53,11 @@ const VibePattern hour_pattern = {
 unsigned cInitialLatLongRequestsRemaining = INITIAL_LAT_LONG_REQUESTS_MAX;
 
 TextLayer *pTextTimeLayer      = 0;
+#ifndef PBL_ROUND
 TextLayer *pTextSunriseLayer   = 0;
 TextLayer *pTextSunsetLayer    = 0;
 TextLayer *pDayOfWeekLayer     = 0;
+#endif
 TextLayer *pMonthLayer         = 0;
 TextLayer *pMoonLayer          = 0;   // moon phase
 
@@ -72,6 +76,7 @@ GFont pFontMediumText = 0;
 GFont pFontSmallText = 0;
 
 
+#if PBL_PLATFORM_APLITE
 /**
  *  Watchface dial: a transparent png which supplies hour marks, a face
  *  outline, and masks everything outside the face to black.  Aside from
@@ -79,6 +84,7 @@ GFont pFontSmallText = 0;
  *  twilight bands to show through.
  */
 TransBitmap* pTransBmpWatchface = 0;
+#endif
 
 ///  Boundary between night and astronomical twilight.
 TwilightPath* pTwiPathNight = 0;
@@ -93,6 +99,34 @@ TwilightPath* pTwiPathNautical = 0;
 TwilightPath* pTwiPathCivil = 0;
 
 
+
+#if ! PBL_PLATFORM_APLITE
+
+/**
+ *  Based on our most recently calculated twilight bands, report whether
+ *  the supplied time falls over "dark" (night or astro twilight) or "light"
+ *  (nautical / civil twilight and daylight) part of the display.
+ *  
+ *  Note that the time is 0:00 - 23:59, since we have a 24 hour face.
+ *  
+ *  @param localHour Hour, in local time.
+ *  @param localMin Minute
+ *  
+ *  @return \c true if the supplied time falls on a dark background (see description),
+ *          else \c false.
+ */
+
+bool  is_dark_time(int localHour, int localMinute)
+{
+
+   float localTickTime = (float) localHour + localMinute / 60.0;
+
+   return ((localTickTime < pTwiPathAstro->fDawnTime) ||
+           (localTickTime > pTwiPathAstro->fDuskTime));
+
+}  /* end of is_dark_time() */
+
+#endif  // #if ! PBL_PLATFORM_APLITE
 
 /**
  *  Handler called when the "night layer" needs redrawing.
@@ -148,7 +182,7 @@ void graphics_night_layer_update_callback(Layer *me, GContext *ctx)
    //  This difference is because aplite needs to support bitmap draws
    //  via OR, and relies on the bitmap draws to add twilight "color".
 
-#if PBL_PLATFORM_BASALT
+#if ! PBL_PLATFORM_APLITE
    graphics_context_set_fill_color(ctx, TWI_COLOR_NIGHT);
    graphics_fill_rect(ctx, layerFrame, 1, 0);
 #endif
@@ -171,8 +205,14 @@ void graphics_night_layer_update_callback(Layer *me, GContext *ctx)
 
    // ------------------------------------------------
 
+#if PBL_PLATFORM_APLITE
    //  place tidy watchface frame over accumulated render of twilight bands:
    transbitmap_draw_in_rect(pTransBmpWatchface, ctx, layerFrame);
+#else
+   //  post-aplite we have necessary path primitives to actively mask
+   //  & decorate watchface.  This also supports alternate resolutions.
+   draw_watchface_mask(ctx, layerFrame);
+#endif
 
    //  not clear why this is done: perhaps the system needs it?
    graphics_context_set_compositing_mode(ctx, GCompOpAssign);
@@ -295,6 +335,8 @@ void updateDayAndNightInfo(bool update_everything)
    twilight_path_compute_current(pTwiPathNautical, &tmNowLocal);
    twilight_path_compute_current(pTwiPathCivil,    &tmNowLocal);
 
+#ifndef PBL_ROUND
+
    //  Want the user's default time format, but not for the current time.
    //  We can't use clock_copy_time_string(), so make an equivalent format:
    char *time_format;
@@ -322,6 +364,8 @@ void updateDayAndNightInfo(bool update_everything)
    text_layer_set_text(pTextSunsetLayer, sunset_text);
    text_layer_set_text_alignment(pTextSunsetLayer, GTextAlignmentRight);
 
+#endif  // #ifndef PBL_ROUND
+
    DisplayCurrentLunarPhase();
 
    lastUpdateDay = tmNowLocal.tm_mday;
@@ -331,6 +375,7 @@ void updateDayAndNightInfo(bool update_everything)
    layer_mark_dirty(pGraphicsNightLayer);
 
 }  /* end of updateDayAndNightInfo() */
+
 
 /**
  *  Once a minute, update textual time displays, and analog hour hand.
@@ -390,7 +435,9 @@ static void handle_minute_tick(struct tm *tick_time, TimeUnits units_changed)
       memmove(time_text, &time_text[1], sizeof(time_text) - 1);
    }
 
+#ifndef PBL_ROUND
    text_layer_set_text(pDayOfWeekLayer, dow_text);
+#endif
    text_layer_set_text(pMonthLayer, mon_text);
 
    text_layer_set_background_color(pTextTimeLayer, GColorClear);
@@ -406,10 +453,7 @@ static void handle_minute_tick(struct tm *tick_time, TimeUnits units_changed)
 #if HOUR_HAND_USE_PATH
    //  set hour hand's appearance based on whether it is over the night
    //  part of the background
-   float localTickTime = (float) tick_time->tm_hour + tick_time->tm_min / 60.0;
-
-   hour_hand_set_is_night ((localTickTime < pTwiPathAstro->fDawnTime) ||
-                           (localTickTime > pTwiPathAstro->fDuskTime));
+   hour_hand_set_is_night(is_dark_time(tick_time->tm_hour, tick_time->tm_min));
 #endif
 
    //  oddly we seem to need to explicitly mark our base window layer dirty,
@@ -458,7 +502,7 @@ static void  sunclock_window_load(Window * pMyWindow)
    //  separate layer just for the bitmaps (& not using the base window's layer).
 //   pGraphicsNightLayer = layer_create(layer_get_bounds(window_get_root_layer(pWindow)));
 
-#if PBL_PLATFORM_BASALT
+#if ! PBL_PLATFORM_APLITE
    window_set_background_color(pWindow, TWI_COLOR_NIGHT);
 #endif
    pGraphicsNightLayer = window_get_root_layer(pWindow);
@@ -471,11 +515,13 @@ static void  sunclock_window_load(Window * pMyWindow)
 //   layer_add_child(window_get_root_layer(pWindow), pGraphicsNightLayer);
 
 
+#if PBL_PLATFORM_APLITE
    pTransBmpWatchface = transbitmap_create_with_resource_prefix(RESOURCE_ID_IMAGE_WATCHFACE);
    if (pTransBmpWatchface == NULL)
    {
       return;
    }
+#endif
 
    //  Yes, the apparent mismatch between ZENITH_ names and TwilightPath instance
    //  names is intended (if a bit unfortunate).
@@ -494,7 +540,7 @@ static void  sunclock_window_load(Window * pMyWindow)
    }
 
    // time of day text
-   pTextTimeLayer = text_layer_create(GRect(0, 36, 144, 42));
+   pTextTimeLayer = text_layer_create(GRect(0, TEXT_TIME_Y, DISP_WIDTH, 42));
    if (pTextTimeLayer == NULL)
    {
       return;
@@ -505,7 +551,8 @@ static void  sunclock_window_load(Window * pMyWindow)
    layer_add_child(window_get_root_layer(pWindow),
                    text_layer_get_layer(pTextTimeLayer));
 
-   pMoonLayer = text_layer_create(GRect(0, 109, 144, 168 - 115));
+   //  (text grows down, so just make window run all the way to the bottom)
+   pMoonLayer = text_layer_create(GRect(0, TEXT_MOON_Y, DISP_WIDTH, DISP_HEIGHT - TEXT_MOON_Y));
    if (pMoonLayer == NULL)
    {
       return;
@@ -524,7 +571,9 @@ static void  sunclock_window_load(Window * pMyWindow)
    //  Same rectangle used for day of week and date text:
    //  text alignment avoids conflicts in the two layers.
    GRect DayDateTextRect;
-   DayDateTextRect = GRect(0, 0, 144, 127 + 26);
+   DayDateTextRect = GRect(0, TEXT_DATE_Y, DISP_WIDTH, 127 + 26);
+
+#ifndef PBL_ROUND
 
    //Day of Week text
    pDayOfWeekLayer = text_layer_create(DayDateTextRect);
@@ -540,26 +589,36 @@ static void  sunclock_window_load(Window * pMyWindow)
    layer_add_child(window_get_root_layer(pWindow),
                    text_layer_get_layer(pDayOfWeekLayer));
 
+#endif  // #ifndef PBL_ROUND
+
    //Month Text
    pMonthLayer = text_layer_create(DayDateTextRect);
    if (pMonthLayer == NULL)
    {
       return;
    }
+#ifndef PBL_ROUND
    text_layer_set_text_color(pMonthLayer, GColorWhite);
+   text_layer_set_text_alignment(pMonthLayer, GTextAlignmentRight);
+#else
+   text_layer_set_text_color(pMonthLayer, GColorBlack);
+   //  no day-of-week, so center date
+   text_layer_set_text_alignment(pMonthLayer, GTextAlignmentCenter);
+#endif
    text_layer_set_background_color(pMonthLayer, GColorClear);
    text_layer_set_font(pMonthLayer, pFontMediumText);
-   text_layer_set_text_alignment(pMonthLayer, GTextAlignmentRight);
    text_layer_set_text(pMonthLayer, "xxx");
    layer_add_child(window_get_root_layer(pWindow),
                    text_layer_get_layer(pMonthLayer));
+
+#ifndef PBL_ROUND
 
    pFontSmallText = fonts_get_system_font(FONT_KEY_GOTHIC_18);
 
    //  Same rectangle used for sunrise / sunset text layers: updateDayAndNightInfo()
    //  changes sunset text to right-aligned.
    GRect SunRiseSetTextRect;
-   SunRiseSetTextRect = GRect(0, 147, 144, 30);
+   SunRiseSetTextRect = GRect(0, 147, DISP_WIDTH, 30);
 
    pTextSunriseLayer = text_layer_create(SunRiseSetTextRect);
    if (pTextSunriseLayer == NULL)
@@ -582,6 +641,8 @@ static void  sunclock_window_load(Window * pMyWindow)
    text_layer_set_font(pTextSunsetLayer, pFontSmallText);
    layer_add_child(window_get_root_layer(pWindow),
                    text_layer_get_layer(pTextSunsetLayer));
+
+#endif  // #ifndef PBL_ROUND
 
    //  Run initial tick processing before our window displays, so that all
    //  text fields are populated initially.
@@ -612,18 +673,22 @@ static void  sunclock_window_unload(Window * pMyWindow)
 
    tick_timer_service_unsubscribe();
 
+#ifndef PBL_ROUND
    SAFE_DESTROY(text_layer, pTextSunsetLayer);
    SAFE_DESTROY(text_layer, pTextSunriseLayer);
-   SAFE_DESTROY(text_layer, pMonthLayer);
    SAFE_DESTROY(text_layer, pDayOfWeekLayer);
+#endif
+   SAFE_DESTROY(text_layer, pMonthLayer);
    SAFE_DESTROY(text_layer, pMoonLayer);
    SAFE_DESTROY(text_layer, pTextTimeLayer);
    SAFE_DESTROY(layer,      pGraphicsNightLayer);
 
    fMessagePumpRunning = false;
 
+#if PBL_PLATFORM_APLITE
    transbitmap_destroy(pTransBmpWatchface);
    pTransBmpWatchface = 0;
+#endif
 
    hour_hand_deinit();
 
