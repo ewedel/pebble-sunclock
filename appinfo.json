@@ -50,7 +50,7 @@
         "type": "png",
         "name": "IMAGE_HOUR",
         "file": "images/hour.png",
-        "targetPlatforms": [ "basalt" ]
+        "targetPlatforms": [ "basalt", "chalk" ]
       },
       {
         "menuIcon": true,
@@ -86,7 +86,7 @@
         "type": "png",
         "name": "IMAGE_WATCHFACE",
         "file": "images/watchface.png",
-        "targetPlatforms": [ "basalt" ]
+        "targetPlatforms": [ "basalt", "chalk" ]
       }
     ]
   }

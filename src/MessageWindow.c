@@ -7,6 +7,8 @@
 #include  <pebble.h>
 
 #include  "MessageWindow.h"
+
+#include  "geometry.h"
 #include  "sunclock.h"        // for shared font resources
 
 
@@ -16,9 +18,6 @@ static TextLayer * pCaption = 0;
 
 static char achTextBuf[128];
 
-#define FULL_WIDTH 144
-#define FULL_HEIGHT 168
-
 #define TEXT_Y_ORIGIN 45
 
 void  message_window_init()
@@ -27,12 +26,17 @@ void  message_window_init()
    //  do all allocations here, since we don't know when our window might be loaded.
 
    pMsgWindow = window_create();
-   pMsgText = text_layer_create((GRect) {.origin = { 0, TEXT_Y_ORIGIN },
-                                           .size = { FULL_WIDTH, FULL_HEIGHT-TEXT_Y_ORIGIN } });
-   pCaption = text_layer_create((GRect) {.origin = { 0, 0 },
-                                           .size = { FULL_WIDTH, TEXT_Y_ORIGIN } });
+   if (pMsgWindow == NULL)
+   {
+      return;
+   }
 
-   if ((pMsgWindow == NULL) || (pMsgText == NULL) || (pCaption == NULL))
+   pMsgText = text_layer_create((GRect) {.origin = { 0, TEXT_Y_ORIGIN },
+                                           .size = { DISP_WIDTH, DISP_HEIGHT-TEXT_Y_ORIGIN } });
+   pCaption = text_layer_create((GRect) {.origin = { 0, 0 },
+                                           .size = { DISP_WIDTH, TEXT_Y_ORIGIN } });
+
+   if ((pMsgText == NULL) || (pCaption == NULL))
    {
       return;
    }
@@ -41,8 +45,18 @@ void  message_window_init()
    text_layer_set_font(pMsgText, pFontSmallText);
    
    text_layer_set_text_alignment(pCaption, GTextAlignmentCenter);
-   layer_add_child (window_get_root_layer(pMsgWindow), (Layer *) pMsgText);
-   layer_add_child (window_get_root_layer(pMsgWindow), (Layer *) pCaption);
+
+   Layer *pRootLayer = window_get_root_layer(pMsgWindow);
+
+   layer_add_child (pRootLayer, text_layer_get_layer(pMsgText));
+   layer_add_child (pRootLayer, text_layer_get_layer(pCaption));
+
+#ifdef PBL_ROUND
+   APP_LOG(APP_LOG_LEVEL_DEBUG, "doing Round-specific text_flow settings");
+
+   text_layer_enable_screen_text_flow_and_paging(pMsgText, 5);
+   text_layer_enable_screen_text_flow_and_paging(pCaption, 5);
+#endif
 
 }  /* end of message_window_init */
 

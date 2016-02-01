@@ -7,7 +7,7 @@
 #define sunclock_dial_mask_path_h__
 
 
-#if ! PBL_PLATFORM_APLITE
+#ifndef PBL_PLATFORM_APLITE
 
 void  draw_watchface_mask(GContext *ctx, GRect layerFrame);
 

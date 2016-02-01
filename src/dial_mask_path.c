@@ -17,7 +17,7 @@
 #include "sunclock.h"
 
 
-#if ! PBL_PLATFORM_APLITE
+#ifndef PBL_PLATFORM_APLITE
 
 
 /**
@@ -241,5 +241,5 @@ void  draw_watchface_mask(GContext *ctx, GRect layerFrame)
 
 }  /* end of draw_watchface_mask */
 
-#endif  // #if ! PBL_PLATFORM_APLITE
+#endif  // #ifndef PBL_PLATFORM_APLITE
 

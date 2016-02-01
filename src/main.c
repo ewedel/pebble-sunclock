@@ -61,9 +61,9 @@ int  main()
    //  want to have messaging up for whichever window needs it.
    app_msg_init(coords_recvd_callback, coords_failed_callback);
 
-   sunclock_handle_init();
-
    message_window_init();
+
+   sunclock_handle_init();
 
    //  NB: for iOS it may be important to not block application execution
    //      before hitting the main event loop.  So we now defer the check

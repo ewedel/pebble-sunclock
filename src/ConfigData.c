@@ -139,11 +139,14 @@ void  config_data_init()
       //  no (usable) persisted data.
       memset(&curLocationCache, 0, sizeof(curLocationCache));
       // (Zeroing the timeLastUpdate field marks cache as invalid.)
+      APP_LOG(APP_LOG_LEVEL_WARNING, "* config_data_init(): no usable data");
    }
    else
    {
+      APP_LOG(APP_LOG_LEVEL_WARNING, "* config_data_init(): have usable data");
       compute_tz_in_hours();
    }
+
 }
 
 

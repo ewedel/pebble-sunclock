@@ -76,7 +76,7 @@ GFont pFontMediumText = 0;
 GFont pFontSmallText = 0;
 
 
-#if PBL_PLATFORM_APLITE
+#ifdef PBL_PLATFORM_APLITE
 /**
  *  Watchface dial: a transparent png which supplies hour marks, a face
  *  outline, and masks everything outside the face to black.  Aside from
@@ -100,7 +100,7 @@ TwilightPath* pTwiPathCivil = 0;
 
 
 
-#if ! PBL_PLATFORM_APLITE
+#ifdef PBL_COLOR
 
 /**
  *  Based on our most recently calculated twilight bands, report whether
@@ -182,7 +182,7 @@ void graphics_night_layer_update_callback(Layer *me, GContext *ctx)
    //  This difference is because aplite needs to support bitmap draws
    //  via OR, and relies on the bitmap draws to add twilight "color".
 
-#if ! PBL_PLATFORM_APLITE
+#ifdef PBL_COLOR
    graphics_context_set_fill_color(ctx, TWI_COLOR_NIGHT);
    graphics_fill_rect(ctx, layerFrame, 1, 0);
 #endif
@@ -205,7 +205,7 @@ void graphics_night_layer_update_callback(Layer *me, GContext *ctx)
 
    // ------------------------------------------------
 
-#if PBL_PLATFORM_APLITE
+#ifdef PBL_PLATFORM_APLITE
    //  place tidy watchface frame over accumulated render of twilight bands:
    transbitmap_draw_in_rect(pTransBmpWatchface, ctx, layerFrame);
 #else
@@ -396,6 +396,11 @@ static void handle_minute_tick(struct tm *tick_time, TimeUnits units_changed)
 
    (void) units_changed;
 
+   if (! config_data_location_avail())
+   {
+      return;
+   }
+
 #ifndef PBL_SDK_2
    if (config_has_tz_offset_changed())
    {
@@ -502,7 +507,7 @@ static void  sunclock_window_load(Window * pMyWindow)
    //  separate layer just for the bitmaps (& not using the base window's layer).
 //   pGraphicsNightLayer = layer_create(layer_get_bounds(window_get_root_layer(pWindow)));
 
-#if ! PBL_PLATFORM_APLITE
+#ifdef PBL_COLOR
    window_set_background_color(pWindow, TWI_COLOR_NIGHT);
 #endif
    pGraphicsNightLayer = window_get_root_layer(pWindow);
@@ -515,7 +520,7 @@ static void  sunclock_window_load(Window * pMyWindow)
 //   layer_add_child(window_get_root_layer(pWindow), pGraphicsNightLayer);
 
 
-#if PBL_PLATFORM_APLITE
+#ifdef PBL_PLATFORM_APLITE
    pTransBmpWatchface = transbitmap_create_with_resource_prefix(RESOURCE_ID_IMAGE_WATCHFACE);
    if (pTransBmpWatchface == NULL)
    {
@@ -685,7 +690,7 @@ static void  sunclock_window_unload(Window * pMyWindow)
 
    fMessagePumpRunning = false;
 
-#if PBL_PLATFORM_APLITE
+#ifdef PBL_PLATFORM_APLITE
    transbitmap_destroy(pTransBmpWatchface);
    pTransBmpWatchface = 0;
 #endif
@@ -739,6 +744,12 @@ void  sunclock_handle_init()
                                });
 
    window_stack_push(pWindow, true /* Animated */);
+
+   if (! config_data_location_avail())
+   {
+      //  get message window in front of ours right away, even though it has no content yet
+      message_window_show_status("Missing Config", "No location data");
+   }
 
 }  /* end of sunclock_handle_init() */
 
