@@ -18,6 +18,10 @@ typedef enum {
 ///  Four "corners" plus center point.
 #define  POINTS_IN_TWILIGHT_PATH   5
 
+///  For when a platform / function has no resource to supply.
+#define  INVALID_RESOURCE   ((unsigned) -1)
+
+
 /** 
  *  Carries data about a single path which includes two lines, roughly
  *  like hands of a clock, which show the specific times of the sun
@@ -131,7 +135,7 @@ typedef struct {
 //  Simplify parameter passage into twilight_path_create().
 #ifdef PBL_PLATFORM_APLITE
 #define TWI_APLITE_RES_ONLY(bitmap_id)  bitmap_id
-#elif PBL_PLATFORM_BASALT || PBL_PLATFORM_CHALK
+#else
 #define TWI_APLITE_RES_ONLY(bitmap_id)  INVALID_RESOURCE
 #endif
 

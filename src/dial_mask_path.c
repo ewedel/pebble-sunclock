@@ -81,9 +81,7 @@ GPoint dialHub;
 void  get_contrasting_colors(int localHour, GColor *pColorFill, GColor *pColorOutline)
 {
 
-   //BUGBUG - this check is backwards but works, what's wrong where??
-   //         (is_dark_time() works properly for hour hand)
-   if (! is_dark_time(localHour, 0))
+   if (is_dark_time(localHour, 0))
       {
       *pColorFill = GColorDarkGray;
       *pColorOutline = GColorWhite;
@@ -111,8 +109,12 @@ void  get_contrasting_colors(int localHour, GColor *pColorFill, GColor *pColorOu
 void  fill_contrasting_path(GContext *ctx, int localHour, GPath *pPath)
 {
 
-   //  correct from hour 0 == top to degree 0 == right:
-   int32_t hourTrigAngle = (localHour - 6) * TRIG_MAX_ANGLE / 24;
+   //  It is convenient to define the hour mark paths such that the mark
+   //  naturally falls at the zero-degree position, or 18:00 hours on
+   //  our watch face.  gpath_rotate_to() appears to express increasing
+   //  angle as a clockwise motion, so we need only adjust our hours value
+   //  so that the associated hour mark trues up with 00:00 / 24:00.
+   int32_t hourTrigAngle = (localHour + 6) * TRIG_MAX_ANGLE / 24;
 
    GColor  colorFill;
    GColor  colorOutline;
@@ -135,8 +137,12 @@ void  fill_contrasting_path(GContext *ctx, int localHour, GPath *pPath)
 void  draw_small_hour_mark (GContext *ctx, int localHour)
 {
 
-   //  correct from hour 0 == top to degree 0 == right:
-   int32_t hourTrigAngle = (localHour - 6) * TRIG_MAX_ANGLE / 24;
+   //  As luck would have it, the Pebble's native Y axis values increase
+   //  down the display.  This causes a mirroring effect on sin/cos values
+   //  so that angles increase in a clockwise direction.  So we only need
+   //  to offset our hour value so that 00:00 comes out 1/4 of the way
+   //  around the dial from trig's natural 0 angle (18:00 on our face).
+   int32_t hourTrigAngle = (localHour + 6) * TRIG_MAX_ANGLE / 24;
 
    GPoint hourMarkCenter;
 
