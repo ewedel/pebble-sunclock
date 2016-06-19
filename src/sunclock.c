@@ -501,6 +501,9 @@ static void  sunclock_window_load(Window * pMyWindow)
 
    pFontMediumText = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_ROBOTO_CONDENSED_19));
 
+   //  used for main display on non-round watches, and message window on all watches:
+   pFontSmallText = fonts_get_system_font(FONT_KEY_GOTHIC_18);
+
 
    //  The v2 SDK docs suggest that we should do our base bitmap
    //  graphics directly in the window root layer, rather than creating a
@@ -617,8 +620,6 @@ static void  sunclock_window_load(Window * pMyWindow)
                    text_layer_get_layer(pMonthLayer));
 
 #ifndef PBL_ROUND
-
-   pFontSmallText = fonts_get_system_font(FONT_KEY_GOTHIC_18);
 
    //  Same rectangle used for sunrise / sunset text layers: updateDayAndNightInfo()
    //  changes sunset text to right-aligned.

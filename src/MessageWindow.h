@@ -9,16 +9,6 @@
 
 
 /**
- *  Initialize our separate message display window.  Unless requested,
- *  this window is never visible.  But we always allocate it to make
- *  sure it is available when needed.
- */
-void  message_window_init(void);
-
-void  message_window_deinit(void);
-
-
-/**
  *  Write the supplied error info to our message window, and make sure
  *  it is visible.
  *  
@@ -42,8 +32,8 @@ void  message_window_show_error (FailureSource eErrSrc,
 
 
 /**
- *  Hide our message window, if it was displayed.
+ *  Close our message window, if any.
  */
-void  message_window_hide();
+void  message_window_close();
 
 

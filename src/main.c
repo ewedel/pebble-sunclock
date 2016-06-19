@@ -26,7 +26,7 @@ void coords_recvd_callback(float latitude, float longitude, int32_t utcOffset)
 
    //  Got data now, so if we had an error / search message window up,
    //  can get rid of it.
-   message_window_hide();
+   message_window_close();
 
    //  Pass data on to main watchface window.
    sunclock_coords_recvd(latitude, longitude, utcOffset);
@@ -61,8 +61,6 @@ int  main()
    //  want to have messaging up for whichever window needs it.
    app_msg_init(coords_recvd_callback, coords_failed_callback);
 
-   message_window_init();
-
    sunclock_handle_init();
 
    //  NB: for iOS it may be important to not block application execution
@@ -73,8 +71,6 @@ int  main()
    app_event_loop(); 
 
    app_msg_deinit();
-
-   message_window_deinit();
 
    sunclock_handle_deinit();
 

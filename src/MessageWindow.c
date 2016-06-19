@@ -18,23 +18,17 @@ static TextLayer * pCaption = 0;
 
 static char achTextBuf[128];
 
-#define TEXT_Y_ORIGIN 45
+#define CAPTION_Y_ORIGIN  (20)
+#define TEXT_Y_ORIGIN     (DISP_HEIGHT / 3)
 
-void  message_window_init()
+
+static void  message_window_load(Window *pWindow)
 {
-
-   //  do all allocations here, since we don't know when our window might be loaded.
-
-   pMsgWindow = window_create();
-   if (pMsgWindow == NULL)
-   {
-      return;
-   }
 
    pMsgText = text_layer_create((GRect) {.origin = { 0, TEXT_Y_ORIGIN },
                                            .size = { DISP_WIDTH, DISP_HEIGHT-TEXT_Y_ORIGIN } });
-   pCaption = text_layer_create((GRect) {.origin = { 0, 0 },
-                                           .size = { DISP_WIDTH, TEXT_Y_ORIGIN } });
+   pCaption = text_layer_create((GRect) {.origin = { 0, CAPTION_Y_ORIGIN },
+                                           .size = { DISP_WIDTH, TEXT_Y_ORIGIN - CAPTION_Y_ORIGIN } });
 
    if ((pMsgText == NULL) || (pCaption == NULL))
    {
@@ -45,8 +39,9 @@ void  message_window_init()
    text_layer_set_font(pMsgText, pFontSmallText);
    
    text_layer_set_text_alignment(pCaption, GTextAlignmentCenter);
+   text_layer_set_text_alignment(pMsgText, GTextAlignmentCenter);
 
-   Layer *pRootLayer = window_get_root_layer(pMsgWindow);
+   Layer *pRootLayer = window_get_root_layer(pWindow);
 
    layer_add_child (pRootLayer, text_layer_get_layer(pMsgText));
    layer_add_child (pRootLayer, text_layer_get_layer(pCaption));
@@ -58,41 +53,75 @@ void  message_window_init()
    text_layer_enable_screen_text_flow_and_paging(pCaption, 5);
 #endif
 
-}  /* end of message_window_init */
+}  /* end of message_window_load */
 
 
-void  message_window_deinit()
+static void  message_window_unload(Window *pWindow)
 {
-
-   message_window_hide();
 
    layer_remove_child_layers(window_get_root_layer(pMsgWindow));
 
    text_layer_destroy(pMsgText);
    text_layer_destroy(pCaption);
-   window_destroy(pMsgWindow);
 
-}  /* end of message_window_deinit */
+}
 
 
-static void  show_message_window()
+static bool  ensure_message_window_pushed()
 {
 
-   if (pMsgWindow != window_stack_get_top_window())
+   if (pMsgWindow != 0)
    {
-      window_stack_push(pMsgWindow, false /* animated */);
+      //  we assume that any time our message window exists it is already displayed
+      return true;
    }
 
-}  /* end of show_message_window */
+   pMsgWindow = window_create(); 
+   if (pMsgWindow == NULL)
+   {
+      return false;
+   }
+
+   window_set_window_handlers(pMsgWindow, (WindowHandlers) {
+                                             .load = message_window_load,
+                                             .unload = message_window_unload
+                                          } );
+
+   window_stack_push(pMsgWindow, false /* animated */);
+
+   return true;
+
+}  /* end of ensure_message_window_pushed() */
+
+
+void  message_window_close()
+{
+
+   if (pMsgWindow == 0)
+   {
+      return;
+   }
+
+   if (pMsgWindow == window_stack_get_top_window())
+   {
+      window_stack_pop (false /* animated	*/);
+   }
+
+   window_destroy(pMsgWindow);
+   pMsgWindow = 0;
+
+   return;
+
+}  /* end of message_window_close */
 
 
 void  message_window_show_status (const char *pszCaption, const char *pszText)
 {
 
+   ensure_message_window_pushed();
+
    text_layer_set_text(pCaption, pszCaption);
    text_layer_set_text(pMsgText, pszText);
-
-   show_message_window();
 
 }  /* end of message_window_show_status */
 
@@ -102,6 +131,8 @@ void  message_window_show_error (FailureSource eErrSrc,
 {
 
    const char * pszCaption;
+
+   ensure_message_window_pushed();
 
    if (eErrSrc == FAIL_SRC_APP_MSG)
       pszCaption = "Watch/Phone Comms Error";
@@ -114,19 +145,5 @@ void  message_window_show_error (FailureSource eErrSrc,
    text_layer_set_text(pCaption, pszCaption);
    text_layer_set_text(pMsgText, achTextBuf);
 
-   show_message_window();
-
 }  /* end of message_window_show_error */
-
-
-void  message_window_hide()
-{
-
-   //  don't destroy it, just undisplay it.
-   if (pMsgWindow == window_stack_get_top_window())
-   {
-      window_stack_pop (false /* animated	*/);
-   }
-
-}  /* end of message_window_hide */
 
