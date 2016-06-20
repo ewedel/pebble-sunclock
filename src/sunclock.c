@@ -463,9 +463,7 @@ static void handle_minute_tick(struct tm *tick_time, TimeUnits units_changed)
 
    //  oddly we seem to need to explicitly mark our base window layer dirty,
    //  or else old time values will stack on top each other
-//#if PBL_PLATFORM_BASALT
    layer_mark_dirty(pGraphicsNightLayer);
-//#endif
 
 // Vibrate Every Hour
 #if HOUR_VIBRATION
@@ -508,7 +506,6 @@ static void  sunclock_window_load(Window * pMyWindow)
    //  The v2 SDK docs suggest that we should do our base bitmap
    //  graphics directly in the window root layer, rather than creating a
    //  separate layer just for the bitmaps (& not using the base window's layer).
-//   pGraphicsNightLayer = layer_create(layer_get_bounds(window_get_root_layer(pWindow)));
 
 #ifdef PBL_COLOR
    window_set_background_color(pWindow, TWI_COLOR_NIGHT);
@@ -520,7 +517,6 @@ static void  sunclock_window_load(Window * pMyWindow)
    }
 
    layer_set_update_proc(pGraphicsNightLayer, graphics_night_layer_update_callback); 
-//   layer_add_child(window_get_root_layer(pWindow), pGraphicsNightLayer);
 
 
 #ifdef PBL_PLATFORM_APLITE
@@ -547,7 +543,7 @@ static void  sunclock_window_load(Window * pMyWindow)
       return;
    }
 
-   // time of day text
+   //  time of day text
    pTextTimeLayer = text_layer_create(GRect(0, TEXT_TIME_Y, DISP_WIDTH, 42));
    if (pTextTimeLayer == NULL)
    {
@@ -715,6 +711,13 @@ void sunclock_coords_recvd(float latitude, float longitude, int32_t utcOffset)
    {
       config_data_location_set(latitude, longitude, utcOffset); 
 
+      time_t timeNow = time(NULL);
+      struct tm * pLocalTime = localtime(&timeNow);
+      handle_minute_tick(pLocalTime, MINUTE_UNIT);
+
+      //  we likely also need force a full recompute, since handle_minute_tick()'s
+      //  tz check may well not have fired.  Battery, ouch.  But only on initial
+      //  config set from phone.
       updateDayAndNightInfo(true /* update_everything */);
    }
 
