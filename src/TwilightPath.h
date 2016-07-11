@@ -15,8 +15,8 @@ typedef enum {
 } ScreenPartToEnclose;
 
 
-///  Four "corners" plus center point.
-#define  POINTS_IN_TWILIGHT_PATH   5
+///  Dawn & dusk intercepts, up to four "corners" plus center point.
+#define  POINTS_IN_TWILIGHT_PATH   7
 
 ///  For when a platform / function has no resource to supply.
 #define  INVALID_RESOURCE   ((unsigned) -1)
@@ -183,7 +183,9 @@ void  twilight_path_compute_current(TwilightPath *pTwilightPath,
  *  @param ctx Graphics context to render to.  Iff we are supplied a bitmap
  *              then we change the context's compositing mode to GCompAnd.
  *  @param color Color to fill our path with.
- *  @param frameDst Frame to constrain rendering to (whole window).
+ *  @param frameDst Frame to constrain rendering to.  We expect this to be the
+ *             entire display, so we apply our dial's vertical offset when
+ *             centering the twilight hub.
  */
 void  twilight_path_render(TwilightPath *pTwilightPath, GContext *ctx,
                            GColor color, GRect frameDst);

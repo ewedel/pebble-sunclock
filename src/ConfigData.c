@@ -88,10 +88,17 @@ static void  compute_tz_in_hours()
 ///  Return Pebble watch's effective local time offset from UTC, factoring in DST.
 static int  get_pebble_tz_secs()
 {
+
+int gmtoff;
+
+#if TESTING_USE_DUMMY_COORDS
+   gmtoff = - TESTING_DUMMY_UTC_OFFSET;
+#else
+
    time_t   tmNow = time(NULL);
    struct tm * pTm = localtime(&tmNow);
 
-   int gmtoff = pTm->tm_gmtoff;
+   gmtoff = pTm->tm_gmtoff;
    if (pTm->tm_isdst > 0)
    {
       gmtoff += 3600;
@@ -101,6 +108,8 @@ static int  get_pebble_tz_secs()
       //  tm_isdst < 0 means "unknown", so we fall back to our config value.
       gmtoff = -curLocationCache.iUtcOffset; 
    }
+
+#endif  // #if TESTING_USE_DUMMY_COORDS
 
    return gmtoff;
 }
@@ -127,6 +136,7 @@ void  config_data_init()
    curLocationCache.fLongitude = TESTING_DUMMY_LONGITUDE;
    curLocationCache.iUtcOffset = TESTING_DUMMY_UTC_OFFSET;
    curLocationCache.timeLastUpdate = time(NULL);
+   curTimezoneInSeconds = -TESTING_DUMMY_UTC_OFFSET;
    iRet = sizeof(curLocationCache);
 #endif
 

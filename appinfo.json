@@ -7,7 +7,7 @@
   "versionCode": 3,
   "versionLabel": "3.4",
   "sdkVersion": "3",
-  "targetPlatforms": ["aplite", "basalt", "chalk"],
+  "targetPlatforms": ["basalt", "chalk"],
   "watchapp": {
     "watchface": true
   },
@@ -45,12 +45,6 @@
         "name": "IMAGE_HOUR",
         "file": "images/hour.png",
         "targetPlatforms": [ "aplite" ]
-      },
-      {
-        "type": "png",
-        "name": "IMAGE_HOUR",
-        "file": "images/hour.png",
-        "targetPlatforms": [ "basalt", "chalk" ]
       },
       {
         "menuIcon": true,

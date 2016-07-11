@@ -312,8 +312,10 @@ void DisplayCurrentLunarPhase()
  */
 void updateDayAndNightInfo(bool update_everything)
 {
+#ifndef PBL_ROUND
    static char sunrise_text[] = "00:00";
    static char sunset_text[] = "00:00";
+#endif
 
    ///  Localtime mday of most recent completed day/night update.
    ///  This means we normally update just after midnight, which

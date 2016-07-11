@@ -137,6 +137,8 @@ void  fill_contrasting_path(GContext *ctx, int localHour, GPath *pPath)
 void  draw_small_hour_mark (GContext *ctx, int localHour)
 {
 
+   //  NB: This is quite similar to what is done in find_time_path_point().
+
    //  As luck would have it, the Pebble's native Y axis values increase
    //  down the display.  This causes a mirroring effect on sin/cos values
    //  so that angles increase in a clockwise direction.  So we only need

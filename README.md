@@ -12,6 +12,16 @@ If for some reason that doesn't work, you can also [download Twilight Sunclock f
 
 # History
 
+3.4
+
+[Pebble SDK 3.13.1]
+
+Add Pebble Time Round support, and temporarily (I hope!) remove Classic support.
+
+Correct display issues when latitude is towards either pole (reported case was near Bremen, Germany, but it should work further North / South now).
+
+Fix "missing config" and other error windows which had been malfunctioning for the last few releases.
+
 3.3
 
 [Pebble SDK 3.6]
