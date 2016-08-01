@@ -265,22 +265,26 @@ void  twilight_path_compute_current(TwilightPath *pTwilightPath,
    {
       //  path encloses top part of screen
       pTwilightPath->aPathPoints[iPt++] = dawnPoint;
+
+      //  sometimes dawn might fall before midnight:
+      if ((fDawnTime < 3) || (fDawnTime > 21))
+      {
+         //  fill to lower left corner
+         pTwilightPath->aPathPoints[iPt++] = GPoint(X_LEFT, Y_BOTTOM);
+      }
       if (fDawnTime < 9)
       {
          //  fill to upper left corner
          pTwilightPath->aPathPoints[iPt++] = GPoint(X_LEFT, Y_TOP);
-      }
-      if (fDawnTime < 3)
-      {
-         //  fill to lower left corner
-         pTwilightPath->aPathPoints[iPt++] = GPoint(X_LEFT, Y_BOTTOM);
       }
       if (fDuskTime > 15)
       {
          //  fill to upper right corner
          pTwilightPath->aPathPoints[iPt++] = GPoint(X_RIGHT, Y_TOP);
       }
-      if (fDuskTime > 21)
+
+      //  sometimes dusk might fall after midnight:
+      if ((fDuskTime > 21) || (fDuskTime < 3))
       {
          //  fill to lower right corner
          pTwilightPath->aPathPoints[iPt++] = GPoint(X_RIGHT, Y_BOTTOM);
