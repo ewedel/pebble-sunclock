@@ -12,6 +12,12 @@ If for some reason that doesn't work, you can also [download Twilight Sunclock f
 
 # History
 
+3.5
+
+[Pebble SDK 3.14]
+
+Fix another high-latitude bug: handle case when edges of a twilight band are both on the same side of midnight.
+
 3.4
 
 [Pebble SDK 3.13.1]
