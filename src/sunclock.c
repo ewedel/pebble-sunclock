@@ -21,6 +21,7 @@
 #include "MessageWindow.h"
 #include "messaging.h"
 #include "my_math.h"
+#include "platform.h"
 #include "suncalc.h"
 #include "TransBitmap.h"
 #include "TransRotBmp.h"
@@ -33,8 +34,8 @@
 ///  Main watchface window.
 Window *pWindow;
 
-///  pWindow & all supporting layers, etc. initialized ok?
-bool initialized_ok = false;
+///  Failed initialization due to lack of heap?
+bool  s_fHeapFailure = false;
 
 ///  Is watchface's message pump running?  Not true until our first window proc callback.
 bool fMessagePumpRunning = false;
@@ -100,8 +101,6 @@ TwilightPath* pTwiPathCivil = 0;
 
 
 
-#ifdef PBL_COLOR
-
 /**
  *  Based on our most recently calculated twilight bands, report whether
  *  the supplied time falls over "dark" (night or astro twilight) or "light"
@@ -126,7 +125,6 @@ bool  is_dark_time(int localHour, int localMinute)
 
 }  /* end of is_dark_time() */
 
-#endif  // #if ! PBL_PLATFORM_APLITE
 
 /**
  *  Handler called when the "night layer" needs redrawing.
@@ -142,6 +140,20 @@ bool  is_dark_time(int localHour, int localMinute)
 void graphics_night_layer_update_callback(Layer *me, GContext *ctx)
 {
 
+
+   if (s_fHeapFailure)
+   {
+      //  attempt to put up a trivial screen message.
+      GFont font = fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD);
+      graphics_context_set_text_color(ctx, GColorBlack);
+      graphics_context_set_compositing_mode(ctx, GCompOpAssign);  //needed?
+      GRect layer_bounds = layer_get_bounds(me);
+
+      graphics_draw_text(ctx, "Out of Memory", font, layer_bounds,
+                         GTextOverflowModeWordWrap,
+                         GTextAlignmentCenter, NULL);
+      return;
+   }
 
    fMessagePumpRunning = true;
 
@@ -481,6 +493,55 @@ static void handle_minute_tick(struct tm *tick_time, TimeUnits units_changed)
 }  /* end of handle_minute_tick() */
 
 
+static void  sunclock_window_free_all_memory()
+{
+
+
+   tick_timer_service_unsubscribe();
+
+#ifndef PBL_ROUND
+   SAFE_DESTROY(text_layer, pTextSunsetLayer);
+   SAFE_DESTROY(text_layer, pTextSunriseLayer);
+   SAFE_DESTROY(text_layer, pDayOfWeekLayer);
+#endif
+   SAFE_DESTROY(text_layer, pMonthLayer);
+   SAFE_DESTROY(text_layer, pMoonLayer);
+   SAFE_DESTROY(text_layer, pTextTimeLayer);
+
+   //  actually our main window's base layer, so don't nuke it.
+//   SAFE_DESTROY(layer,      pGraphicsNightLayer);
+
+#ifdef PBL_PLATFORM_APLITE
+   transbitmap_destroy(pTransBmpWatchface);
+   pTransBmpWatchface = 0;
+#endif
+
+   hour_hand_deinit();
+
+   SAFE_DESTROY(twilight_path, pTwiPathNight);
+   SAFE_DESTROY(twilight_path, pTwiPathAstro);
+   SAFE_DESTROY(twilight_path, pTwiPathNautical);
+   SAFE_DESTROY(twilight_path, pTwiPathCivil);
+
+}  /* end of sunclock_window_free_all_memory() */
+
+
+/**
+ *  Report a heap failure, try to free enough memory to put up an error message.
+ */
+void  mark_heap_failure()
+{
+
+   s_fHeapFailure = true;
+
+   layer_mark_dirty(pGraphicsNightLayer);
+
+   sunclock_window_free_all_memory();
+
+   return;
+
+}
+
 /**
  *  Do GUI layout for already-created window, and cache all needed resources.
  *  Also register a tick handler, initialize watch/phone messaging, and request
@@ -525,6 +586,7 @@ static void  sunclock_window_load(Window * pMyWindow)
    pTransBmpWatchface = transbitmap_create_with_resource_prefix(RESOURCE_ID_IMAGE_WATCHFACE);
    if (pTransBmpWatchface == NULL)
    {
+      mark_heap_failure();
       return;
    }
 #endif
@@ -542,6 +604,7 @@ static void  sunclock_window_load(Window * pMyWindow)
    if ((pTwiPathNight == NULL) || (pTwiPathAstro == NULL) ||
        (pTwiPathNautical == NULL) || (pTwiPathCivil == NULL))
    {
+      mark_heap_failure();
       return;
    }
 
@@ -549,9 +612,10 @@ static void  sunclock_window_load(Window * pMyWindow)
    pTextTimeLayer = text_layer_create(GRect(0, TEXT_TIME_Y, DISP_WIDTH, 42));
    if (pTextTimeLayer == NULL)
    {
+      mark_heap_failure();
       return;
    }
-   text_layer_set_text_color(pTextTimeLayer, GColorBlack); 
+   text_layer_set_text_color(pTextTimeLayer, GColorBlack);
    text_layer_set_background_color(pTextTimeLayer, GColorClear);
    text_layer_set_font(pTextTimeLayer, pFontCurTime);
    layer_add_child(window_get_root_layer(pWindow),
@@ -561,6 +625,7 @@ static void  sunclock_window_load(Window * pMyWindow)
    pMoonLayer = text_layer_create(GRect(0, TEXT_MOON_Y, DISP_WIDTH, DISP_HEIGHT - TEXT_MOON_Y));
    if (pMoonLayer == NULL)
    {
+      mark_heap_failure();
       return;
    }
    text_layer_set_text_color(pMoonLayer, GColorWhite);
@@ -585,9 +650,10 @@ static void  sunclock_window_load(Window * pMyWindow)
    pDayOfWeekLayer = text_layer_create(DayDateTextRect);
    if (pDayOfWeekLayer == NULL)
    {
+      mark_heap_failure();
       return;
    }
-   text_layer_set_text_color(pDayOfWeekLayer, GColorWhite); 
+   text_layer_set_text_color(pDayOfWeekLayer, GColorWhite);
    text_layer_set_background_color(pDayOfWeekLayer, GColorClear);
    text_layer_set_font(pDayOfWeekLayer, pFontMediumText);
    text_layer_set_text_alignment(pDayOfWeekLayer, GTextAlignmentLeft);
@@ -601,6 +667,7 @@ static void  sunclock_window_load(Window * pMyWindow)
    pMonthLayer = text_layer_create(DayDateTextRect);
    if (pMonthLayer == NULL)
    {
+      mark_heap_failure();
       return;
    }
 #ifndef PBL_ROUND
@@ -627,6 +694,7 @@ static void  sunclock_window_load(Window * pMyWindow)
    pTextSunriseLayer = text_layer_create(SunRiseSetTextRect);
    if (pTextSunriseLayer == NULL)
    {
+      mark_heap_failure();
       return;
    }
    text_layer_set_text_color(pTextSunriseLayer, GColorWhite);
@@ -638,9 +706,10 @@ static void  sunclock_window_load(Window * pMyWindow)
    pTextSunsetLayer = text_layer_create(SunRiseSetTextRect);
    if (pTextSunsetLayer == NULL)
    {
+      mark_heap_failure();
       return;
    }
-   text_layer_set_text_color(pTextSunsetLayer, GColorWhite); 
+   text_layer_set_text_color(pTextSunsetLayer, GColorWhite);
    text_layer_set_background_color(pTextSunsetLayer, GColorClear);
    text_layer_set_font(pTextSunsetLayer, pFontSmallText);
    layer_add_child(window_get_root_layer(pWindow),
@@ -660,8 +729,6 @@ static void  sunclock_window_load(Window * pMyWindow)
 
    tick_timer_service_subscribe(MINUTE_UNIT, handle_minute_tick);
 
-   initialized_ok = true;
-
 }  /* end of sunclock_window_load */
 
 
@@ -675,31 +742,9 @@ static void  sunclock_window_unload(Window * pMyWindow)
 
    //BUGBUG: pWindow == pMyWindow ??
 
-   tick_timer_service_unsubscribe();
-
-#ifndef PBL_ROUND
-   SAFE_DESTROY(text_layer, pTextSunsetLayer);
-   SAFE_DESTROY(text_layer, pTextSunriseLayer);
-   SAFE_DESTROY(text_layer, pDayOfWeekLayer);
-#endif
-   SAFE_DESTROY(text_layer, pMonthLayer);
-   SAFE_DESTROY(text_layer, pMoonLayer);
-   SAFE_DESTROY(text_layer, pTextTimeLayer);
-   SAFE_DESTROY(layer,      pGraphicsNightLayer);
-
    fMessagePumpRunning = false;
 
-#ifdef PBL_PLATFORM_APLITE
-   transbitmap_destroy(pTransBmpWatchface);
-   pTransBmpWatchface = 0;
-#endif
-
-   hour_hand_deinit();
-
-   SAFE_DESTROY(twilight_path, pTwiPathNight);
-   SAFE_DESTROY(twilight_path, pTwiPathAstro);
-   SAFE_DESTROY(twilight_path, pTwiPathNautical);
-   SAFE_DESTROY(twilight_path, pTwiPathCivil);
+   sunclock_window_free_all_memory();
 
 }  /* end of sunclock_window_unload() */
 
@@ -707,7 +752,7 @@ static void  sunclock_window_unload(Window * pMyWindow)
 void sunclock_coords_recvd(float latitude, float longitude, int32_t utcOffset)
 {
 
-   APP_LOG(APP_LOG_LEVEL_DEBUG, "got coords, utcOff=%d", (int) utcOffset);
+   MY_APP_LOG(APP_LOG_LEVEL_DEBUG, "got coords, utcOff=%d", (int) utcOffset);
 
    if (config_data_is_different(latitude, longitude, utcOffset))
    {
@@ -751,7 +796,7 @@ void  sunclock_handle_init()
 
    window_stack_push(pWindow, true /* Animated */);
 
-   if (! config_data_location_avail())
+   if ((! config_data_location_avail()) && (! s_fHeapFailure))
    {
       //  get message window in front of ours right away, even though it has no content yet
       message_window_show_status("Missing Config", "No location data");

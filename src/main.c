@@ -9,6 +9,7 @@
 #include  "ConfigData.h"
 #include  "messaging.h"
 #include  "MessageWindow.h"
+#include  "platform.h"
 #include  "sunclock.h"
 
 
@@ -38,7 +39,7 @@ void coords_failed_callback (FailureSource eErrSrc,
                              int32_t errCode, const char *pszErrMsg)
 {
 
-   APP_LOG(APP_LOG_LEVEL_DEBUG, "coords failure, src=%d, err=%d, msg=\"%s\"",
+   MY_APP_LOG(APP_LOG_LEVEL_DEBUG, "coords failure, src=%d, err=%d, msg=\"%s\"",
            (int) eErrSrc, (int) errCode, pszErrMsg);
 
    if (config_data_location_avail())

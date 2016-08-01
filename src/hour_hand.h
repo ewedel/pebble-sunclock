@@ -19,6 +19,7 @@ void  hour_hand_set_angle(int32_t hour_angle);
 
 //  For now, we use the original bitmap approach on aplite,
 //  and path on basalt (anti-aliasing is nice there).
+
 #ifdef PBL_PLATFORM_APLITE
 
 # define HOUR_HAND_USE_PATH 0

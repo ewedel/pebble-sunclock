@@ -6,6 +6,7 @@
 
 #include  "messaging.h"
 
+#include  "platform.h"
 #include  "testing.h"
 
 #include  <pebble.h>
@@ -53,13 +54,13 @@ static bool  app_msg_RequestLatLong_internal(void)
 
    if (amRet != APP_MSG_OK)
    {
-      APP_LOG(APP_LOG_LEVEL_DEBUG, "app_message_outbox_begin failed, ret = %04X", amRet);
-      return false; 
+      MY_APP_LOG(APP_LOG_LEVEL_DEBUG, "app_message_outbox_begin failed, ret = %04X", amRet);
+      return false;
    }
 
    if (iter == NULL)
    {
-      APP_LOG(APP_LOG_LEVEL_DEBUG, "app_message_outbox_begin returned null iter");
+      MY_APP_LOG(APP_LOG_LEVEL_DEBUG, "app_message_outbox_begin returned null iter");
       return false;
    }
 
@@ -68,7 +69,7 @@ static bool  app_msg_RequestLatLong_internal(void)
    dRet = dict_write_tuplet(iter, &fetch_tuple);
    if (dRet != DICT_OK)
    {
-      APP_LOG(APP_LOG_LEVEL_DEBUG, "dict_write_tuplet failed, ret = %04X", dRet);
+      MY_APP_LOG(APP_LOG_LEVEL_DEBUG, "dict_write_tuplet failed, ret = %04X", dRet);
       fMyRet = false;
       //  fall through to call end anyway
    }
@@ -86,7 +87,7 @@ static bool  app_msg_RequestLatLong_internal(void)
       amRet = app_message_outbox_send();
       if (amRet != APP_MSG_OK)
       {
-         APP_LOG(APP_LOG_LEVEL_DEBUG, "app_message_outbox_send failed, ret = %04X", amRet);
+         MY_APP_LOG(APP_LOG_LEVEL_DEBUG, "app_message_outbox_send failed, ret = %04X", amRet);
          fMyRet = false;
       }
    }
@@ -164,7 +165,7 @@ static void in_received_handler(DictionaryIterator *iter, void *context)
 
 static void in_dropped_handler(AppMessageResult reason, void *context)
 {
-   APP_LOG(APP_LOG_LEVEL_DEBUG, "App Message Dropped!  reason = %04X", reason);
+   MY_APP_LOG(APP_LOG_LEVEL_DEBUG, "App Message Dropped!  reason = %04X", reason);
 }
 
 
@@ -172,7 +173,7 @@ static void out_failed_handler(DictionaryIterator *failed, AppMessageResult reas
 {
    static int failCount = 0;
    failCount ++;
-   APP_LOG(APP_LOG_LEVEL_DEBUG, "App Message Failed to Send! [%d]  reason = %04X",
+   MY_APP_LOG(APP_LOG_LEVEL_DEBUG, "App Message Failed to Send! [%d]  reason = %04X",
            failCount, reason);
    if (fRequestOutstanding)
    {

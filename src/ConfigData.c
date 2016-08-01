@@ -5,6 +5,7 @@
 
 #include  "ConfigData.h"
 
+#include  "platform.h"
 #include  "testing.h"
 
 
@@ -149,11 +150,11 @@ void  config_data_init()
       //  no (usable) persisted data.
       memset(&curLocationCache, 0, sizeof(curLocationCache));
       // (Zeroing the timeLastUpdate field marks cache as invalid.)
-      APP_LOG(APP_LOG_LEVEL_WARNING, "* config_data_init(): no usable data");
+      MY_APP_LOG(APP_LOG_LEVEL_WARNING, "* config_data_init(): no usable data");
    }
    else
    {
-      APP_LOG(APP_LOG_LEVEL_WARNING, "* config_data_init(): have usable data");
+      MY_APP_LOG(APP_LOG_LEVEL_WARNING, "* config_data_init(): have usable data");
       compute_tz_in_hours();
    }
 
@@ -272,9 +273,9 @@ ConfigDataCurLocation   newLocation;
    //  Started seeing E_INTERNAL from persist_write_data, so make a best effort
    //  to remove the old value, if any, first.
    iRet = persist_delete(CONFIG_DATA_KEY_CUR_LOCATION);
-   APP_LOG(APP_LOG_LEVEL_DEBUG, "persist_delete ret =  %d", iRet); 
+   MY_APP_LOG(APP_LOG_LEVEL_DEBUG, "persist_delete ret =  %d", iRet); 
 
-   iRet = persist_write_data(CONFIG_DATA_KEY_CUR_LOCATION, 
+   iRet = persist_write_data(CONFIG_DATA_KEY_CUR_LOCATION,
                              &newLocation, sizeof(newLocation));
    if (iRet == sizeof(newLocation))
    {
@@ -284,7 +285,7 @@ ConfigDataCurLocation   newLocation;
       return true;
    }
 
-   APP_LOG(APP_LOG_LEVEL_DEBUG, "persist_write_data failed, ret =  %d", iRet);
+   MY_APP_LOG(APP_LOG_LEVEL_DEBUG, "persist_write_data failed, ret =  %d", iRet);
 
    //BUGBUG - should we flag cached copy as invalid to match?
    return false;

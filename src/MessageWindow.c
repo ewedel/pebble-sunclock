@@ -9,6 +9,7 @@
 #include  "MessageWindow.h"
 
 #include  "geometry.h"
+#include  "platform.h"
 #include  "sunclock.h"        // for shared font resources
 
 
@@ -47,7 +48,7 @@ static void  message_window_load(Window *pWindow)
    layer_add_child (pRootLayer, text_layer_get_layer(pCaption));
 
 #ifdef PBL_ROUND
-   APP_LOG(APP_LOG_LEVEL_DEBUG, "doing Round-specific text_flow settings");
+   MY_APP_LOG(APP_LOG_LEVEL_DEBUG, "doing Round-specific text_flow settings");
 
    text_layer_enable_screen_text_flow_and_paging(pMsgText, 5);
    text_layer_enable_screen_text_flow_and_paging(pCaption, 5);
